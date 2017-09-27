@@ -1,8 +1,3 @@
-##################################################
-#      TOS Makefile - Could use improvement      #
-##################################################
-
-
 # Compiler path/name
 # (Set this to i686-elf-gcc on linux, or to your path to the cross compiler on windows)
 CC = C:/MinGW/ghost-i686-elf-tools-win32/ghost-i686-elf-tools/bin/i686-elf-gcc.exe
@@ -15,7 +10,6 @@ AS = C:/MinGW/ghost-i686-elf-tools-win32/ghost-i686-elf-tools/bin/i686-elf-as.ex
 # (Set this to the path to qemu, or simply qemu-system-i386 in linux)
 QEMU = "C:/Program Files/qemu/qemu-system-i386.exe"
 
-
 # General flags. Used widely
 GFLAGS = -ffreestanding -O2
 
@@ -23,7 +17,7 @@ GFLAGS = -ffreestanding -O2
 CFLAGS = -std=gnu99 $(GFLAGS) -Wall -Wextra -nostdlib
 
 # Flags for linking
-LFLAGS = -T src/kernel/linker.ld -o build/tos.bin $(GFLAGS) -nostdlib $(OBJFULL_ALL)
+LFLAGS = -T src/kernel/linker.ld -o build/tos.bin $(GFLAGS) -nostdlib
 
 LIBK_INCLUDE = "src/libk"
 LIBC_INCLUDE = "src/libc"
@@ -33,75 +27,59 @@ CPPFLAGS = -I$(LIBC_INCLUDE) -I$(LIBK_INCLUDE)
 
 ODIR = build/obj
 
-# Weird stuff ahead that showcases my lack of 'make' knowledge
-
-ALL_C = $(KERNEL_C) $(LIBC_C)
-ALL_H = $(KERNEL_H) $(LIBC_H)
-ALL_S = $(KERNEL_S)
-
-ALL_O_C = $(ALL_C:.c=.o)
-ALL_O_S = $(ALL_S:.s=.o)
-
-ALL_O = $(ALL_O_C) $(ALL_O_S)
-
-OBJDIRS = $(basename $(OBJFULL_ALL))
-OBJFULL = $(patsubst %, $(ODIR)/%, $(ALL_O_C))
-OBJFULL_SO = $(patsubst %, $(ODIR)/%, $(ALL_O_S))
-OBJFULL_ALL = $(OBJFULL) $(OBJFULL_SO)
-
-#################################################
-# KERNEL FILES								    #
-#################################################
-KERNEL_H = src/kernel/multiboot/multiboot.h
-KERNEL_C = src/kernel/kernel.c
-KERNEL_S = src/kernel/arch/i386/boot.s
-
-#################################################
-# LIBC FILES								    #
-#################################################
-LIBC_H = src/libc/string.h
-LIBC_C = src/libc/string.c 
-
-#################################################
-# LIBK FILES								    #
-#################################################
+# Recursive wildcard function
+rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
 
-.PHONY: all 
-# If called with no arguments will call wathever task is there:
-all: run
+## FIND ALL .C FILES ##
+CFILES = $(filter %.c,$(call rwildcard,src/,*c))
+#OCFILES = $(CFILES:.c=.o)
+OCFILES = $(CFILES:src/%.c=$(ODIR)/%.o)
 
+## FIND ALL .S FILES ##
+SFILES = $(filter %.s,$(call rwildcard,src/,*s))
+#OSFILES = $(SFILES:.s=.o)
+OSFILES = $(SFILES:src/%.s=$(ODIR)/%.o)
 
-# Makes all .o files coming from .c files
-$(OBJFULL): $(ALL_C)
-	@echo "Make_C"
+OFILES = $(OCFILES) $(OSFILES)
+
+OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+
+default: run
+
+build: build/tos.bin
+
+.SECONDEXPANSION:
+
+## COMPILE ALL .C FILES ##
+
+$(warning $(CFILES) -> $(OCFILES))
+$(warning $(SFILES) -> $(OSFILES))
+
+$(OCFILES): $$(patsubst $(ODIR)/%.o,src/%.c,$$@)
+	mkdir -p $(@D)
 	$(CC) $(CPPFLAGS) -c $< -o $@ $(CFLAGS)
 
-# Makes all .o files coming from .s files
-$(OBJFULL_SO): $(ALL_S)
-	@echo "Make ASM"
+	
+$(OSFILES): $$(patsubst $(ODIR)/%.o,src/%.s,$$@)
+	mkdir -p $(@D)
 	$(AS) $< -o $@ 
 
-
-# Makes all folders for build
-.PHONY: folders
-folders: $(OBJDIRS)
-
-$(OBJDIRS): 
-	mkdir -p $@
+$(OFILES): $(OCFILES) $(OSFILES)
 
 
-# Make targets
 
+build/tos.bin: $(OFILES)
+	$(CC) -o $@ $(LFLAGS) $^
 
-.PHONY: kernel
-kernel: folders $(OBJFULL) $(OBJFULL_SO)  
-	$(CC) $(LFLAGS)
+.PHONY: clear default run
 
-.PHONY: run
-run: kernel
+clear: 
+	rm -rf build
+
+run: build/tos.bin
 	$(QEMU) -kernel build/tos.bin -m 128
 
-.PHONY: clear
-clear:
-	rm -rf build
+
+
+

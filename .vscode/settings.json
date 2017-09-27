@@ -2,6 +2,7 @@
 	"files.associations": {
 		"*.tsm": "ruby",
 		"stdbool.h": "c",
-		"cstring.h": "c"
+		"cstring.h": "c",
+		"string": "c"
 	}
 }

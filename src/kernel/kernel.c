@@ -2,6 +2,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <string.h>
+
 /* Hardware text mode color constants. */
 enum vga_color {
 	VGA_COLOR_BLACK = 0,
@@ -91,5 +93,5 @@ void kernel_main(void) {
  
 	/* Newline support is left as an exercise. */
 	terminal_writestring("Hello, kernel World!");
-	
+	terminal_writestring(get_str());
 }
