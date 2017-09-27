@@ -20,12 +20,12 @@ QEMU = "C:/Program Files/qemu/qemu-system-i386.exe"
 GFLAGS = -ffreestanding -O2
 
 # Flags for compiling
-CFLAGS = $(CPPFLAGS) $(GFLAGS) -std=gnu99  -Wall -Wextra
+CFLAGS = -std=gnu99 $(GFLAGS) -Wall -Wextra -nostdlib
 
 # Flags for linking
-LFLAGS = -T src/kernel/linker.ld -o build/tos.bin $(GFLAGS) -nostdlib $(OBJFULL_ALL) -lgcc
+LFLAGS = -T src/kernel/linker.ld -o build/tos.bin $(GFLAGS) -nostdlib $(OBJFULL_ALL)
 
-LIBK_INCLUDE = "src/kernel/libk"
+LIBK_INCLUDE = "src/libk"
 LIBC_INCLUDE = "src/libc"
 
 # Flags for the C PreProcessor, includes clib and klib
@@ -35,7 +35,8 @@ ODIR = build/obj
 
 # Weird stuff ahead that showcases my lack of 'make' knowledge
 
-ALL_C = $(KERNEL_C)
+ALL_C = $(KERNEL_C) $(LIBC_C)
+ALL_H = $(KERNEL_H) $(LIBC_H)
 ALL_S = $(KERNEL_S)
 
 ALL_O_C = $(ALL_C:.c=.o)
@@ -55,6 +56,16 @@ KERNEL_H = src/kernel/multiboot/multiboot.h
 KERNEL_C = src/kernel/kernel.c
 KERNEL_S = src/kernel/arch/i386/boot.s
 
+#################################################
+# LIBC FILES								    #
+#################################################
+LIBC_H = src/libc/string.h
+LIBC_C = src/libc/string.c 
+
+#################################################
+# LIBK FILES								    #
+#################################################
+
 
 .PHONY: all 
 # If called with no arguments will call wathever task is there:
@@ -62,12 +73,12 @@ all: run
 
 
 # Makes all .o files coming from .c files
-$(OBJFULL): $(KERNEL_C)
+$(OBJFULL): $(ALL_C)
 	@echo "Make_C"
-	$(CC) -c $< -o $@ $(CFLAGS)
+	$(CC) $(CPPFLAGS) -c $< -o $@ $(CFLAGS)
 
 # Makes all .o files coming from .s files
-$(OBJFULL_SO): $(KERNEL_S)
+$(OBJFULL_SO): $(ALL_S)
 	@echo "Make ASM"
 	$(AS) $< -o $@ 
 

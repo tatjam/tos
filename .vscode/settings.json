@@ -1,0 +1,7 @@
+{
+	"files.associations": {
+		"*.tsm": "ruby",
+		"stdbool.h": "c",
+		"cstring.h": "c"
+	}
+}
