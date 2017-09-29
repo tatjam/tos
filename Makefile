@@ -14,7 +14,7 @@ QEMU = "C:/Program Files/qemu/qemu-system-i386.exe"
 GFLAGS = -ffreestanding -O2
 
 # Flags for compiling
-CFLAGS = -std=gnu99 $(GFLAGS) -Wall -Wextra -nostdlib
+CFLAGS = -std=gnu99 $(GFLAGS) -Wall -Wextra -nostdlib -g
 
 # Flags for linking
 LFLAGS = -T src/kernel/linker.ld -o build/tos.bin $(GFLAGS) -nostdlib
@@ -31,6 +31,7 @@ ODIR = build/obj
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
 
+
 ## FIND ALL .C FILES ##
 CFILES = $(filter %.c,$(call rwildcard,src/,*c))
 #OCFILES = $(CFILES:.c=.o)
@@ -41,31 +42,52 @@ SFILES = $(filter %.s,$(call rwildcard,src/,*s))
 #OSFILES = $(SFILES:.s=.o)
 OSFILES = $(SFILES:src/%.s=$(ODIR)/%.o)
 
+
+
 OFILES = $(OCFILES) $(OSFILES)
 
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 
 default: run
-
+# Only build, dont run
 build: build/tos.bin
+
+debug: build/tos.bin
+	$(QEMU) -kernel build/tos.bin -m 128 -gdb tcp::9000 -S
+
+qdebug: build/tos.bin
+	$(QEMU) -kernel build/tos.bin -m 128 -d guest_errors
+
+# To be used when changing small stuff in .h files or similar
+force: clear run
 
 .SECONDEXPANSION:
 
 ## COMPILE ALL .C FILES ##
 
-$(warning $(CFILES) -> $(OCFILES))
-$(warning $(SFILES) -> $(OSFILES))
+# Useful message to make multile builds easier to read
+$(warning ---------------------------------------------------)
+$(warning Make Invoked)
+$(warning ---------------------------------------------------)
+
+
+#$(warning $(CFILES) -> $(OCFILES))
+#$(warning $(SFILES) -> $(OSFILES))
 
 $(OCFILES): $$(patsubst $(ODIR)/%.o,src/%.c,$$@)
 	mkdir -p $(@D)
 	$(CC) $(CPPFLAGS) -c $< -o $@ $(CFLAGS)
 
-	
+
+
 $(OSFILES): $$(patsubst $(ODIR)/%.o,src/%.s,$$@)
 	mkdir -p $(@D)
-	$(AS) $< -o $@ 
+	$(AS) $< -o $@ -g
 
-$(OFILES): $(OCFILES) $(OSFILES)
+# Not sure why this causes circular dependencies
+# but it's 4AM and I just learned Makefiles :P
+#$(OFILES): $(OCFILES) $(OSFILES)
+# Enable if something goes wrong
 
 
 

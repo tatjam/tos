@@ -3,6 +3,8 @@
 		"*.tsm": "ruby",
 		"stdbool.h": "c",
 		"cstring.h": "c",
-		"string": "c"
+		"string": "c",
+		"xlocale": "cpp",
+		"gdt.h": "c"
 	}
 }
