@@ -24,3 +24,15 @@ uint8_t isr_is_spurious(uint8_t inum)
 {
 	return 0;
 }
+
+
+void isr_com1(void)
+{
+	uint8_t byte = asm_inb(SERIAL_COM1);
+	ktty_putc(byte);
+}
+
+void isr_com2(void)
+{
+	
+}

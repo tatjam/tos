@@ -67,12 +67,12 @@ static uint16_t pic_get_irq_reg(int ocw3)
     return (asm_inb(PIC2_CMD) << 8) | asm_inb(PIC1_CMD);
 }
 
-inline uint16_t pic_get_irr(void)
+inline static uint16_t pic_get_irr(void)
 {
     return pic_get_irq_reg(PIC_READ_IRR);
 }
  
-inline uint16_t pic_get_isr(void)
+inline static uint16_t pic_get_isr(void)
 {
     return pic_get_irq_reg(PIC_READ_ISR);
 }

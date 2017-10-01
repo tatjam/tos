@@ -31,3 +31,6 @@ void kerror(char msg[128]);
 
 /* Invalid mode of wathever (VGA, etc...) */
 #define KRET_INVALIDMODE 2
+
+/* Buffer ran out of space */
+#define KRET_NO_SPACE 3

@@ -5,6 +5,7 @@
 		"cstring.h": "c",
 		"string": "c",
 		"xlocale": "cpp",
-		"gdt.h": "c"
+		"gdt.h": "c",
+		"serial.h": "c"
 	}
 }

@@ -66,6 +66,9 @@ idt_set:
 
 .global isr_key_wrap
 .global isr_unhandled_wrap
+.global isr_com1_wrap
+.global isr_com2_wrap
+
 .align 4
 
 
@@ -78,6 +81,46 @@ isr_unhandled_wrap:
 	add esp, 4
     popad
    	iretd
+
+
+isr_com1_wrap:
+    pushad
+	/* Check for spurious */
+	push 1
+	call isr_is_spurious
+	add esp, 4
+	cmp eax, 0
+	jne isr_com1_wrap_exit
+    cld
+    call isr_com1
+	jmp isr_com1_wrap_exit
+isr_com1_wrap_exit:
+	push 1
+	call isr_generic_return
+	add esp, 4
+    popad
+   	iretd
+
+
+
+isr_com2_wrap:
+    pushad
+	/* Check for spurious */
+	push 1
+	call isr_is_spurious
+	add esp, 4
+	cmp eax, 0
+	jne isr_com2_wrap_exit
+    cld
+    call isr_com2
+	jmp isr_com2_wrap_exit
+isr_com2_wrap_exit:
+	push 1
+	call isr_generic_return
+	add esp, 4
+    popad
+   	iretd
+
 
 
 isr_key_wrap:
