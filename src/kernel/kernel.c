@@ -29,22 +29,19 @@ void kernel_main(void)
 
 	idt_prepare();
 
+	pic_remap(PIC1_OFFSET, PIC2_OFFSET);
+
 	for(size_t i = 0; i < 256; i++)
 	{
-		idt_load_handler(i, isr_key_wrap);
+		idt_load_handler(i, isr_unhandled_wrap);
 	}
 
-	ktty_putf("We alive");
+	idt_load_handler(PIC1_OFFSET + 1, isr_key_wrap);
 
-
+	asm_sti();
 
 	while(1)
 	{
-		asm_int();
-		// Loop, waiting for interrupts to test...
-		ktty_putf("Still alive!");
+		;;
 	}
-
-
-
 }

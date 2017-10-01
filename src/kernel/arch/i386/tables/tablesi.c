@@ -7,10 +7,8 @@ GDT_t* gdt_prepare()
 {
 	gdt.descriptors[0] = gdt_descriptor(0, 0, 0);
 	gdt.descriptors[1] = gdt_descriptor(0, 0xFFFFFFFF, (GDT_CODE_PL0));
-	gdt.descriptors[2] = gdt_descriptor(0, 0xFFFFFFFF, (GDT_DATA_PL0));
-	gdt.descriptors[3] = gdt_descriptor(0, 0xFFFFFFFF, (GDT_CODE_PL3));
-	gdt.descriptors[4] = gdt_descriptor(0, 0xFFFFFFFF, (GDT_DATA_PL3));
-
+    gdt.descriptors[2] = gdt_descriptor(0, 0xFFFFFFFF, (GDT_DATA_PL0));
+    
 	gdt_set(&gdt, sizeof(gdt) - 1);
 
 	return &gdt;

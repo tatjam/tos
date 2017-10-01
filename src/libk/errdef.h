@@ -13,9 +13,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define kerr(x) kerror(x)
+#include "libkdef.h"
 
-typedef unsigned int uint;
+#define kerr(x) kerror(x)
 
 /* kret_t is a generic error return type */
 typedef uint16_t kret_t;

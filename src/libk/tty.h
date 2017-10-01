@@ -24,6 +24,8 @@
 
 #include <stdarg.h>
 
+#include "libkdef.h"
+
 
 
 typedef struct ktty_cursor

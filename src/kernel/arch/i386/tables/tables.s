@@ -12,6 +12,8 @@
 .global idt_set
 .global gdt_set
 
+.align 4
+
 
 /* Dummy structure */
 gdt_info:
@@ -38,8 +40,8 @@ reload_segments:
 reload_cs:
    /* Reload data segment registers: */
    mov ax, 0x10 /* 0x10 points at the new data selector */
-   mov ds, ax 
-   mov es, ax 
+   mov ds, ax
+   mov es, ax
    mov fs, ax 
    mov gs, ax 
    mov ss, ax
@@ -63,13 +65,39 @@ idt_set:
 /* Interrupt handlers that call C code */
 
 .global isr_key_wrap
+.global isr_unhandled_wrap
+.align 4
+
+
+isr_unhandled_wrap:
+    pushad
+    cld
+    call isr_unhandled
+	push 4
+	call isr_generic_return
+	add esp, 4
+    popad
+   	iretd
+
 
 isr_key_wrap:
     pushad
+	/* Check for spurious */
+	push 1
+	call isr_is_spurious
+	add esp, 4
+	cmp eax, 0
+	jne isr_key_wrap_exit
     cld
     call isr_key
+	jmp isr_key_wrap_exit
+isr_key_wrap_exit:
+	push 1
+	call isr_generic_return
+	add esp, 4
     popad
-    iret
+   	iretd
+
 
 
 

@@ -25,5 +25,5 @@ asm_sti:
 	ret 
 
 asm_int:
-	int 0
-	ret 
+	int 8
+	ret

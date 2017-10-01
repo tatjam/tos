@@ -58,6 +58,10 @@ debug: build/tos.bin
 qdebug: build/tos.bin
 	$(QEMU) -kernel build/tos.bin -m 128 -d guest_errors
 
+debug-reset: build/tos.bin
+	$(QEMU) -kernel build/tos.bin -m 128 -d int
+
+
 # To be used when changing small stuff in .h files or similar
 force: clear run
 

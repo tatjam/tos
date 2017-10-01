@@ -9,6 +9,11 @@
 	All functions are prefixed with asm
 */
 
+#include "libkdef.h"
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 // Disables interrupts
 extern void asm_cli(void);
