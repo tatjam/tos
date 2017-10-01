@@ -28,6 +28,7 @@ uint8_t isr_is_spurious(uint8_t inum)
 
 void isr_com1(void)
 {
+	// TODO: We can't test
 	uint8_t byte = asm_inb(SERIAL_COM1);
 	ktty_putc(byte);
 }
