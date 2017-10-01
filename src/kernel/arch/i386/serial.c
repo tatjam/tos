@@ -55,3 +55,13 @@ void serial_init()
 	asm_outb(SERIAL_COM1 + 2, 0xC7);    // Enable FIFO, clear them, with 14-byte threshold
 	asm_outb(SERIAL_COM1 + 4, 0x0B);    // IRQs enabled, RTS/DSR set
  }
+
+ void serial_puts(char* str)
+ {
+	 size_t i = 0;
+	 while(str[i] != 0)
+	 {
+		 serial_putc(str[i]);
+		 i++;
+	 }
+ }

@@ -50,6 +50,11 @@ uint16_t serial_getc();
 void serial_putc(uint8_t byte);
 
 /*
+	serial_puts: Writes string to serial, 0 terminated string
+*/
+void serial_puts(char* str);
+
+/*
 	serial_transmit_empty: Is the serial ready to transmit new byte?
 
 	Used internally, but can be used

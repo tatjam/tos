@@ -10,7 +10,7 @@
 #include "tables.h"
 #include "../pic.h"
 #include <tty.h>
-
+#include "../serial.h"
 
 extern void isr_key_wrap(void);
 extern void isr_unhandled_wrap(void);

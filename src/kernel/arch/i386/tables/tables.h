@@ -65,6 +65,9 @@ GDT_t* gdt_prepare();
 /* Prepares an empty IDT, loads it and returns it*/
 IDT_t* idt_prepare();
 
+/* Configures all IDT stuff to defaults, loads ISR */
+void idt_configure();
+
 /* Loads a handler function into given interrupt */
 void idt_load_handler(uint8_t inum, ihandler_t handler);
 

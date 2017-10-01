@@ -6,12 +6,14 @@
 
 #include <tty.h>
 #include <asmutil.h>
+#include <kio.h>
+
 #include "arch/i386/serial.h"
 
 #include "arch/i386/tables/tables.h"
+#include "multiboot/multiboot.h"
 
-
-void kernel_main(void) 
+void kernel_main(multiboot_info_t* mbd, unsigned int magic) 
 {
 	
 	asm_cli();
@@ -23,24 +25,21 @@ void kernel_main(void)
 
 	serial_init();
 
-	ktty_putf("%a[TOS-BOOT]%a Loading GDT\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
+	ktty_putf("%a[TOS-BOOT]%a Serial Initialized\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 
 	gdt_prepare();
 
-	ktty_putf("%a[TOS-BOOT]%a Loading IDT\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
+	ktty_putf("%a[TOS-BOOT]%a GDT loaded\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 
-	idt_prepare();	pic_remap(PIC1_OFFSET, PIC2_OFFSET);
+	idt_prepare();	
+	idt_configure();
 
-	for(size_t i = 0; i < 256; i++)
-	{
-		idt_load_handler(i, isr_unhandled_wrap);
-	}
-
-	idt_load_handler(PIC1_OFFSET + 1, isr_key_wrap);
-	idt_load_handler(PIC1_OFFSET + 3, isr_com2_wrap);
-	idt_load_handler(PIC1_OFFSET + 4, isr_com1_wrap);
+	ktty_putf("%a[TOS-BOOT]%a IDT loaded and configured. Enabling interrupts\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 
 	asm_sti();
+
+	ktty_putf("%a[TOS-BOOT]%a Basic Boot Finished\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
+	
 
 	while(1)
 	{

@@ -29,8 +29,13 @@ void kerror(char msg[128]);
 /* Offbound error occurred */
 #define KRET_OFFBOUNDS 1
 
+/* Offbound error occurred */
+#define KRET_OVERFLOW 1
+
 /* Invalid mode of wathever (VGA, etc...) */
 #define KRET_INVALIDMODE 2
 
 /* Buffer ran out of space */
 #define KRET_NO_SPACE 3
+
+#define KRET_INVALID_ARGUMENTS 4

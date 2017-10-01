@@ -97,3 +97,27 @@ vga_pos_t vga_get_height()
 {
 	return height;
 }
+
+void vga_upload_cursor(vga_cursor_t cursor)
+{
+	uint16_t position = 0;
+
+	if(cursor.visible)
+	{
+		position = (cursor.y * vga_get_width()) + cursor.x;
+	}
+	else
+	{
+		// offscreen
+		position = vga_get_width() * vga_get_height() + 1;
+	}
+
+	// cursor LOW port to vga INDEX register
+	asm_outb(0x3D4, 0x0F);
+	asm_outb(0x3D5, (uint8_t)(position&0xFF));
+	// cursor HIGH port to vga INDEX register
+	asm_outb(0x3D4, 0x0E);
+	asm_outb(0x3D5, (uint8_t)((position>>8)&0xFF));
+	
+
+}

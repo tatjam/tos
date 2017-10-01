@@ -12,6 +12,7 @@
 */
 
 #include <errdef.h>
+#include <asmutil.h>
 
 /* Type used to define positions in the terminal */
 typedef uint32_t vga_pos_t;
@@ -27,6 +28,16 @@ typedef struct vga_text_entry
 	vga_color_t bg;
 
 } vga_text_entry_t;
+
+
+typedef struct vga_cursor
+{
+	vga_pos_t x, y;
+	bool visible;
+
+} vga_cursor_t;
+
+
 
 #define VGA_BRIGHT(x) vga_set_bright(x, true)
 #define VGA_DARK(x) vga_set_bright(x, false)
@@ -78,3 +89,5 @@ vga_text_entry_t vga_get_entry(vga_pos_t i);
 
 vga_pos_t vga_get_width();
 vga_pos_t vga_get_height();
+
+void vga_upload_cursor(vga_cursor_t cursor);

@@ -28,14 +28,6 @@
 
 
 
-typedef struct ktty_cursor
-{
-	vga_pos_t x, y;
-	bool visible;
-
-} ktty_cursor_t;
-
-
 
 /**************************************************************
 	ktty_init - Initializes the terminal
@@ -52,7 +44,7 @@ void ktty_init();
 	be modified freely, reflecting changes in the temrminal
 
 */
-ktty_cursor_t* ktty_cursor();
+vga_cursor_t* ktty_cursor();
 
 /**************************************************************
 	ktty_set - Sets character to given

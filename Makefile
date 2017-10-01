@@ -104,7 +104,7 @@ clear:
 	rm -rf build
 
 run: build/tos.bin
-	$(QEMU) -kernel build/tos.bin -m 128
+	$(QEMU) -kernel build/tos.bin -m 128 -serial file:build/outserial.log
 
 
 

@@ -1,6 +1,6 @@
 #include "tty.h"
 
-static ktty_cursor_t cursor;
+static vga_cursor_t cursor;
 
 static vga_color_t active_fg;
 static vga_color_t active_bg;
@@ -12,6 +12,7 @@ void ktty_init()
 	// Initialize cursor
 	cursor.x = 0;
 	cursor.y = 0;
+	cursor.visible = true;
 
 	active_fg = VGA_GRAY;
 	active_bg = VGA_BLACK;
@@ -124,6 +125,8 @@ void ktty_putc(char c)
 		// Scroll
 		ktty_scroll();
 	}
+
+	vga_upload_cursor(cursor);
 
 }
 
