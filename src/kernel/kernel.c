@@ -40,7 +40,6 @@ void kernel_main(multiboot_info_t* mbd, unsigned int magic)
 
 	ktty_putf("%a[TOS-BOOT]%a Basic Boot Finished\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 	
-
 	while(1)
 	{
 		;;
