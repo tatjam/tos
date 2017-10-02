@@ -16,6 +16,9 @@ extern void isr_key_wrap(void);
 extern void isr_unhandled_wrap(void);
 extern void isr_com1_wrap(void);
 extern void isr_com2_wrap(void);
+extern void isr_pagefault_wrap(void);
+
+void isr_pagefault(uint32_t code);
 
 void isr_key(void);
 

@@ -8,6 +8,11 @@
 		"gdt.h": "c",
 		"serial.h": "c",
 		"liballoc.h": "c",
-		"pagealloc.h": "c"
+		"pagealloc.h": "c",
+		"stddef.h": "c",
+		"asmutil.h": "c",
+		"tty.h": "c",
+		"phalloc.h": "c",
+		"palloc.h": "c"
 	}
 }

@@ -2,7 +2,7 @@
 
 void pic_send_eoi(uint8_t irq)
 {
-	if(irq >= 8)
+	if(irq >= PIC2_OFFSET)
 	{
 		asm_outb(PIC2_COMMAND,PIC_EOI);
 	}

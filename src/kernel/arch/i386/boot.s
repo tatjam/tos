@@ -18,6 +18,9 @@ stack_bottom:
 .skip 16384 # 16 KiB
 stack_top:
 
+.global boot_pagedir
+.global boot_pagetab1
+
 # Preallocate pages used for paging. Don't hard-code addresses and assume they
 # are available, as the bootloader might have loaded its multiboot structures or
 # modules there. This lets the bootloader know it must avoid the addresses.
@@ -39,7 +42,7 @@ mboot_flags:
 .type _start, @function
 _start:
 	# Store multiboot flags (why?)
-	mov $mboot_flags, %ebx 
+	# mov %ebx, mboot_flags
 
 	# Physical address of boot_pagetab1.
 	# TODO: I recall seeing some assembly that used a macro to do the
@@ -55,8 +58,8 @@ _start:
 	movl $1023, %ecx
 
 1:
-	# Only map the kernel.
-	cmpl $(_kernel_start - 0xC0000000), %esi
+	# Map frop 0 to kernel_end (for now).
+	cmpl $(0), %esi
 	jl 2f
 	cmpl $(_kernel_end - 0xC0000000), %esi
 	jge 3f
@@ -79,6 +82,9 @@ _start:
 
 	# Map VGA video memory to 0xC03FF000 as "present, writable".
 	movl $(0x000B8000 | 0x003), boot_pagetab1 - 0xC0000000 + 1023 * 4
+
+	# Map pagedir to last entry of pagedir
+	movl $((boot_pagedir - 0xC0000000) + 0x003), boot_pagedir - 0xC0000000 + 1023 * 4
 
 	# The page table is used at both page directory entry 0 (virtually from 0x0
 	# to 0x3FFFFF) (thus identity mapping the kernel) and page directory entry
@@ -121,6 +127,9 @@ _start:
 
 	# Push multiboot magic number
 	push %eax
+
+	# Recover multiboot address
+	# mov $mboot_flags, %ebx 
 
 	# Push multiboot address
 	push %ebx

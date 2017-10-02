@@ -59,7 +59,7 @@ qdebug: build/tos.bin
 	$(QEMU) -kernel build/tos.bin -m 128 -d guest_errors
 
 debug-reset: build/tos.bin
-	$(QEMU) -kernel build/tos.bin -m 128 -d int
+	$(QEMU) -kernel build/tos.bin -m 128 -d cpu_reset,int
 
 
 # To be used when changing small stuff in .h files or similar
@@ -80,7 +80,7 @@ $(warning ---------------------------------------------------)
 
 $(OCFILES): $$(patsubst $(ODIR)/%.o,src/%.c,$$@)
 	mkdir -p $(@D)
-	$(CC) $(CPPFLAGS) -c $< -o $@ $(CFLAGS)
+	$(CC) $(CPPFLAGS) -c $< -o $@ $(CFLAGS) -lgcc
 
 
 
@@ -96,7 +96,7 @@ $(OSFILES): $$(patsubst $(ODIR)/%.o,src/%.s,$$@)
 
 
 build/tos.bin: $(OFILES)
-	$(CC) -o $@ $(LFLAGS) $^
+	$(CC) -o $@ $(LFLAGS) $^ -lgcc
 
 .PHONY: clear default run
 

@@ -68,6 +68,7 @@ idt_set:
 .global isr_unhandled_wrap
 .global isr_com1_wrap
 .global isr_com2_wrap
+.global isr_pagefault_wrap
 
 .align 4
 
@@ -86,7 +87,7 @@ isr_unhandled_wrap:
 isr_com1_wrap:
     pushad
 	/* Check for spurious */
-	push 1
+	push 0x24
 	call isr_is_spurious
 	add esp, 4
 	cmp eax, 0
@@ -95,7 +96,7 @@ isr_com1_wrap:
     call isr_com1
 	jmp isr_com1_wrap_exit
 isr_com1_wrap_exit:
-	push 1
+	push 0x24
 	call isr_generic_return
 	add esp, 4
     popad
@@ -106,7 +107,7 @@ isr_com1_wrap_exit:
 isr_com2_wrap:
     pushad
 	/* Check for spurious */
-	push 1
+	push 0x23
 	call isr_is_spurious
 	add esp, 4
 	cmp eax, 0
@@ -115,7 +116,7 @@ isr_com2_wrap:
     call isr_com2
 	jmp isr_com2_wrap_exit
 isr_com2_wrap_exit:
-	push 1
+	push 0x23
 	call isr_generic_return
 	add esp, 4
     popad
@@ -126,7 +127,7 @@ isr_com2_wrap_exit:
 isr_key_wrap:
     pushad
 	/* Check for spurious */
-	push 1
+	push 0x21
 	call isr_is_spurious
 	add esp, 4
 	cmp eax, 0
@@ -135,12 +136,27 @@ isr_key_wrap:
     call isr_key
 	jmp isr_key_wrap_exit
 isr_key_wrap_exit:
-	push 1
+	push 0x21
 	call isr_generic_return
 	add esp, 4
     popad
    	iretd
 
 
-
+isr_pagefault_wrap:
+	pushad
+	push 0xE
+	call isr_is_spurious
+	add esp, 4
+	cmp eax, 0
+	jne isr_pagefault_wrap_exit
+	cld 
+	call isr_pagefault
+	jmp isr_pagefault_wrap_exit
+isr_pagefault_wrap_exit:
+	push 0xE
+	call isr_generic_return
+	add esp, 8
+	popad 
+	iretd
 

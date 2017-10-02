@@ -37,3 +37,19 @@ void isr_com2(void)
 {
 	
 }
+
+void isr_pagefault(uint32_t code)
+{
+	ktty_putf("\n%a[KERNEL_ERROR] PAGE FAULT: %a 0x%x\n", VGA_BRIGHT(VGA_RED), VGA_GRAY, code);
+
+	// Decompose and form error message
+
+	bool pbit = code & 0x01;
+	bool wbit = (code >> 1) & 0x01;
+	bool ubit = (code >> 2) & 0x01;
+	bool rbit = (code >> 3) & 0x01;
+	bool ibit = (code >> 4) & 0x01;
+
+	ktty_putf("\tBITS: [p: %u] [w: %u] [u: %u] [r: %u] [i: %u]\n", pbit, wbit, ubit, rbit, ibit);
+	
+}

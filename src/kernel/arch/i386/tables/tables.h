@@ -14,6 +14,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "gdtdef.h"
+
+#include <tty.h>
+
 #include "isr.h"
 
 /* Dummy GDT table with up to 8 descriptors */
