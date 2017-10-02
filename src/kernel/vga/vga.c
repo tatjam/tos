@@ -4,6 +4,7 @@
 static vga_pos_t width = 80;
 static vga_pos_t height = 25;
 
+// Note: Will get replaced as this is physical address
 uint16_t* vmem = (uint16_t*)0xB8000;
 
 bool vga_is_bright(vga_color_t c)
@@ -13,7 +14,7 @@ bool vga_is_bright(vga_color_t c)
 
 void vga_init()
 {
-	vmem = (uint16_t*)0xB8000;
+	vmem = (uint16_t*)0xC03FF000;
 	width = 80;
 	height = 25;
 }

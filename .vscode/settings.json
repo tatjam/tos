@@ -6,6 +6,8 @@
 		"string": "c",
 		"xlocale": "cpp",
 		"gdt.h": "c",
-		"serial.h": "c"
+		"serial.h": "c",
+		"liballoc.h": "c",
+		"pagealloc.h": "c"
 	}
 }

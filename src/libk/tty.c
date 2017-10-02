@@ -5,6 +5,8 @@ static vga_cursor_t cursor;
 static vga_color_t active_fg;
 static vga_color_t active_bg;
 
+char numbuff[128] = {0};
+
 void ktty_init()
 {
 	vga_init();
@@ -278,17 +280,23 @@ void ktty_putf(char *fmt, ...)
 			{
 				// TODO
 				int num = va_arg(parameters, int); 
-				ktty_putc((char)num);
+				kitoa_buf(numbuff, sizeof(numbuff), num, 10);
+				size_t w = ktty_puts(numbuff);
+				written += w;
 			}
 			else if(fmt[i] == 'u')
 			{
 				uint num = va_arg(parameters, uint);
-				ktty_putc((char)num);
+				kutoa_buf(numbuff, sizeof(numbuff), num, 10);
+				size_t w = ktty_puts(numbuff);
+				written += w;
 			}
 			else if(fmt[i] == 'x')
 			{
 				uint num = va_arg(parameters, uint);
-				ktty_putc((char)num);
+				kutoa_buf(numbuff, sizeof(numbuff), num, 16);
+				size_t w = ktty_puts(numbuff);
+				written += w;
 			}
 			else if(fmt[i] == 'f')
 			{
@@ -304,6 +312,9 @@ void ktty_putf(char *fmt, ...)
 			else if(fmt[i] == 'p')
 			{
 				void* ptr = va_arg(parameters, void*);
+				kutoa_buf(numbuff, sizeof(numbuff), (uint)ptr, 16);
+				size_t w = ktty_puts(numbuff);
+				written += w;
 			}
 			else if(fmt[i] == 'a')
 			{

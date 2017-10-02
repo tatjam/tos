@@ -5,6 +5,10 @@ char* digits = {"0123456789ABCDEF"};
 // 128b buffer for general usage by these functions
 char crossbuffer[128] = {0};
 
+void* kboot_to_virt(void* ptr)
+{
+	return (void*)((size_t)ptr + 0xC0000000);
+}
 
 // Reverse 0 terminated string, internal
 void __reverse(char* str)

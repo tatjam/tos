@@ -16,6 +16,10 @@
 #include <stdarg.h>
 
 
+/*
+	kvirt: Converts boot-level pointer to virtual
+*/
+void* kboot_to_virt(void* ptr);
 
 /*
 	kftoa_buf: Converts float to 0 terminated string

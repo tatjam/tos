@@ -23,6 +23,17 @@ void kernel_main(multiboot_info_t* mbd, unsigned int magic)
 
 	ktty_putf("%a[TOS-BOOT]%a VGA Initialized\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 
+	ktty_putf("%a[TOS-BOOT]%a Checking multiboot (0x%x): ", VGA_BRIGHT(VGA_RED), VGA_GRAY, magic);
+
+	if(magic == MULTIBOOT_BOOTLOADER_MAGIC)
+	{
+		ktty_putf("%aOK%a\n", VGA_BRIGHT(VGA_GREEN), VGA_GRAY);
+	}
+	else
+	{
+		ktty_putf("%aERROR%a\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
+	}
+
 	serial_init();
 
 	ktty_putf("%a[TOS-BOOT]%a Serial Initialized\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
@@ -34,12 +45,14 @@ void kernel_main(multiboot_info_t* mbd, unsigned int magic)
 	idt_prepare();	
 	idt_configure();
 
-	ktty_putf("%a[TOS-BOOT]%a IDT loaded and configured. Enabling interrupts\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
+	ktty_putf("%a[TOS-BOOT]%a Loaded IDT. Enabling interrupts\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 
 	asm_sti();
 
 	ktty_putf("%a[TOS-BOOT]%a Basic Boot Finished\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
-	
+
+
+
 	while(1)
 	{
 		;;

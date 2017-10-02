@@ -23,6 +23,7 @@
 #include "../kernel/vga/vga.h"
 
 #include <stdarg.h>
+#include <kio.h>
 
 #include "libkdef.h"
 
