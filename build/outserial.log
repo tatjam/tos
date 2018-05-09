@@ -1,0 +1,6 @@
+[TOS-BOOT] GDT loaded
+[TOS-BOOT] Loaded Basic Paging Tables
+[TOS-BOOT] Loaded IDT
+[TOS-BOOT] Finished Palloc
+[TOS-BOOT] Basic Boot Finished
+0xC03FF000 mapped to 0xB8000

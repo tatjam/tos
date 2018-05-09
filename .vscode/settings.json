@@ -1,6 +1,10 @@
 {
 	"files.associations": {
 		"*.tsm": "ruby",
+		"*.vs": "hlsl",
+		"*.fs": "hlsl",
+		"*.frag": "hlsl",
+		"*.vert": "hlsl",
 		"stdbool.h": "c",
 		"cstring.h": "c",
 		"string": "c",
@@ -13,6 +17,7 @@
 		"asmutil.h": "c",
 		"tty.h": "c",
 		"phalloc.h": "c",
-		"palloc.h": "c"
+		"palloc.h": "c",
+		"kio.h": "c"
 	}
 }

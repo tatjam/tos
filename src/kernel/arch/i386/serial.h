@@ -1,4 +1,5 @@
 #pragma once
+#include <stdarg.h>
 
 
 /*
@@ -51,8 +52,22 @@ void serial_putc(uint8_t byte);
 
 /*
 	serial_puts: Writes string to serial, 0 terminated string
+		
+	Returns number of characters written
 */
-void serial_puts(char* str);
+size_t serial_puts(char* str);
+
+/*
+	serial_putf: Writes formatted string to serial. Same as kprintf
+*/
+void serial_putf(char* format, ...);
+
+/*
+	serial_putf_list: Same as serial_putf but takes the va_list
+
+	Interanlly used by serial_putf
+*/
+void serial_putf_list(char* fmt, va_list* args);
 
 /*
 	serial_transmit_empty: Is the serial ready to transmit new byte?

@@ -113,7 +113,14 @@ size_t ktty_puts(char* str);
 	'%A' - Changes (A)ctive color background to given
 	'%C' - Changes active color to given packed color (ktty_pack_color)
 */
-void ktty_putf(char *fmt, ...);
+void ktty_putf(char* fmt, ...);
+
+/**************************************************************
+	ktty_putf_list - Same as ktty_putf but takes a va_list instead of varargs
+
+	Internally used by ktty_putf to actually do the work
+*/
+void ktty_putf_list(char* fmt, va_list* args);
 
 /**************************************************************
 	ktty_putc - Writes single character. Handles special codes

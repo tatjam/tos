@@ -247,6 +247,13 @@ void ktty_putf(char *fmt, ...)
 	va_list parameters;
 	va_start(parameters, fmt);
 
+	ktty_putf_list(fmt, &parameters);
+
+	va_end(parameters);
+}
+
+void ktty_putf_list(char* fmt, va_list* parameters)
+{
 	size_t written = 0;
 
 	size_t i = 0;
@@ -265,70 +272,70 @@ void ktty_putf(char *fmt, ...)
 			}
 			else if(fmt[i] == 'c')
 			{
-				char c = (char)va_arg(parameters, int);
+				char c = (char)va_arg(*parameters, int);
 				ktty_putc(c);
 				written++;
 			}
 			else if(fmt[i] == 's')
 			{
 				// Put string
-				char* str = va_arg(parameters, char*);
+				char* str = va_arg(*parameters, char*);
 				size_t w = ktty_puts(str);
 				written += w;
 			}
 			else if(fmt[i] == 'i')
 			{
 				// TODO
-				int num = va_arg(parameters, int); 
+				int num = va_arg(*parameters, int); 
 				kitoa_buf(numbuff, sizeof(numbuff), num, 10);
 				size_t w = ktty_puts(numbuff);
 				written += w;
 			}
 			else if(fmt[i] == 'u')
 			{
-				uint num = va_arg(parameters, uint);
+				uint num = va_arg(*parameters, uint);
 				kutoa_buf(numbuff, sizeof(numbuff), num, 10);
 				size_t w = ktty_puts(numbuff);
 				written += w;
 			}
 			else if(fmt[i] == 'x')
 			{
-				uint num = va_arg(parameters, uint);
+				uint num = va_arg(*parameters, uint);
 				kutoa_buf(numbuff, sizeof(numbuff), num, 16);
 				size_t w = ktty_puts(numbuff);
 				written += w;
 			}
 			else if(fmt[i] == 'f')
 			{
-				float num = (float)va_arg(parameters, double);
+				float num = (float)va_arg(*parameters, double);
 				ktty_putc((char)num);
 			}
 			else if(fmt[i] == 'n')
 			{
-				size_t* target = va_arg(parameters, size_t*);
+				size_t* target = va_arg(*parameters, size_t*);
 
 				*target = written;
 			}
 			else if(fmt[i] == 'p')
 			{
-				void* ptr = va_arg(parameters, void*);
+				void* ptr = va_arg(*parameters, void*);
 				kutoa_buf(numbuff, sizeof(numbuff), (uint)ptr, 16);
 				size_t w = ktty_puts(numbuff);
 				written += w;
 			}
 			else if(fmt[i] == 'a')
 			{
-				vga_color_t fg = (vga_color_t)va_arg(parameters, uint);
+				vga_color_t fg = (vga_color_t)va_arg(*parameters, uint);
 				ktty_set_active_color(fg, ktty_get_active_bg());
 			}
 			else if(fmt[i] == 'A')
 			{
-				vga_color_t bg = (vga_color_t)va_arg(parameters, uint);
+				vga_color_t bg = (vga_color_t)va_arg(*parameters, uint);
 				ktty_set_active_color(ktty_get_active_fg(), bg);
 			}
 			else if(fmt[i] == 'C')
 			{
-				uint8_t packed = (uint8_t)va_arg(parameters, uint);
+				uint8_t packed = (uint8_t)va_arg(*parameters, uint);
 				vga_color_t fg, bg;
 				ktty_unpack_color(packed, &fg, &bg);
 				ktty_set_active_color(fg, bg);

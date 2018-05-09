@@ -26,3 +26,11 @@ void* page_get_phys(void* addr);
 	page_update: Forces updating of the paging system
 */
 extern void page_refresh();
+
+/*
+	page_get_phys: Maps a virtual address to a physical address
+
+	Creates PT when necessary, and handles page alignment of
+	arguments automatically.
+*/
+void page_map(void* phys, void* virt, uint flags);

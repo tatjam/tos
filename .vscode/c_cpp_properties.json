@@ -28,9 +28,9 @@
             "includePath": [
                 "/usr/include",
                 "/usr/local/include",
-				"${workspaceRoot}",
-				"${workspaceRoot}/src/libc",
-				"${workspaceRoot}/src/libk"
+                "${workspaceRoot}",
+                "${workspaceRoot}/src/libc",
+                "${workspaceRoot}/src/libk"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
@@ -38,9 +38,9 @@
                 "path": [
                     "/usr/include",
                     "/usr/local/include",
-					"${workspaceRoot}",
-					"${workspaceRoot}/src/libc",
-					"${workspaceRoot}/src/libk"
+                    "${workspaceRoot}",
+                    "${workspaceRoot}/src/libc",
+                    "${workspaceRoot}/src/libk"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
@@ -53,10 +53,10 @@
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/um",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/ucrt",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/shared",
-				"C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/winrt",
-				"${workspaceRoot}",
-				"${workspaceRoot}/src/libc",
-				"${workspaceRoot}/src/libk"
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/winrt",
+                "${workspaceRoot}",
+                "${workspaceRoot}/src/libc",
+                "${workspaceRoot}/src/libk"
             ],
             "defines": [
                 "_DEBUG",
@@ -77,5 +77,5 @@
             }
         }
     ],
-    "version": 3
+    "version": 4
 }

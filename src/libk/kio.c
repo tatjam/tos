@@ -1,4 +1,6 @@
 #include "kio.h"
+#include "tty.h"
+#include "../kernel/arch/i386/serial.h"
 
 char* digits = {"0123456789ABCDEF"};
 
@@ -254,6 +256,25 @@ kret_t kprintf_buf(char* buffer, size_t bufsize, char* fmt, ...)
 		i++;
 	}
 
+	va_end(parameters);
+
 	return KRET_SUCCESS;
 			
+}
+
+
+// Console, serial and wathever else
+void klog(char* format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	
+	serial_putf_list(format, &args);
+
+	va_start(args, format);
+
+	ktty_putf_list(format, &args);
+
+	va_end(args);
+
 }
