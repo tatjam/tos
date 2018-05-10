@@ -1,6 +1,18 @@
 [TOS-BOOT] GDT loaded
 [TOS-BOOT] Loaded Basic Paging Tables
 [TOS-BOOT] Loaded IDT
+[TOS-PALLOC] Reading mbt at: 0xC0009500
+[TOS-PALLOC] (Real: 0x9500) [Flags: 0x24F]
+[TOS-PALLOC] Memory -> [133 Mb, 133038 Kb]
+[TOS-PALLOC] Kernel End -> 0xC008
+[TOS-PALLOC] Reading entry r:(0x0)...Not Usable [654 Kb]
+[TOS-PALLOC] Reading entry r:(0x9FC00)...Not Usable [1 Kb]
+[TOS-PALLOC] Reading entry r:(0xF0000)...Not Usable [65 Kb]
+[TOS-PALLOC] Reading entry r:(0x100000)...Usable [133 Mb]
+[TOS-PALLOC] Reading entry r:(0x7FE0000)...Not Usable [131 Kb]
+[TOS-PALLOC] Reading entry r:(0xFFFC0000)...Not Usable [262 Kb]
+[TOS-PALLOC] 1 sectors usable
+[TOS-PALLOC] 32480 blocks (32 Kb) ready to work on
+[TOS-PALLOC] Found space for bitmap: r(0x100000)
 [TOS-BOOT] Finished Palloc
 [TOS-BOOT] Basic Boot Finished
-0xC03FF000 mapped to 0xB8000

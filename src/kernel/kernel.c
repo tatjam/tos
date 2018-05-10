@@ -59,7 +59,7 @@ void kernel_main(multiboot_info_t* mbd, unsigned int magic)
 	
 	klog("%a[TOS-BOOT]%a Finished Palloc\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 	klog("%a[TOS-BOOT]%a Basic Boot Finished\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
-	klog("0x%x mapped to 0x%x", 0xC03FF000, page_get_phys((void*)0xC03FF000));
+
 	asm_sti();
 
 

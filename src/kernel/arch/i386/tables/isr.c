@@ -51,5 +51,10 @@ void isr_pagefault(uint32_t code)
 	bool ibit = (code >> 4) & 0x01;
 
 	ktty_putf("\tBITS: [p: %u] [w: %u] [u: %u] [r: %u] [i: %u]\n", pbit, wbit, ubit, rbit, ibit);
+
+	while(1)
+	{
+		;;
+	}
 	
 }

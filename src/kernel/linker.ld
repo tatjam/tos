@@ -8,6 +8,7 @@ SECTIONS
 	. = 0xC0100000;
 	/* Add a symbol that indicates the start address of the kernel. */
 	_kernel_start = .;
+	_kernel_start_ph = . - 0xC0100000;
 	.text ALIGN (4K) : AT (ADDR (.text) - 0xC0000000)
 	{
 		*(.multiboot)
@@ -29,4 +30,5 @@ SECTIONS
 	}
 	/* Add a symbol that indicates the end address of the kernel. */
 	_kernel_end = .;
+	_kernel_end_ph = . - 0xC0100000;
 }
