@@ -22,6 +22,94 @@ typedef struct sector {
 
 } sector_t;
 
+uint32_t *frames;
+uint32_t nframes;
+
+#define FRAME_INDEX_FROM_BIT(a) (a/(8*4))
+#define FRAME_OFFSET_FROM_BIT(a) (a%(8*4))
+#define FRAME_CALCULATE(addr, idname, offname) uint32_t idname = FRAME_INDEX_FROM_BIT(addr / 0x1000); \
+	uint32_t offname = FRAME_OFFSET_FROM_BIT(addr / 0x1000);
+
+// Useful, private functions (marked as static)
+static void frame_set(uint32_t addr)
+{
+	FRAME_CALCULATE(addr, id, off);
+	frames[id] |= (1 << off);
+}
+
+static void frame_clear(uint32_t addr)
+{
+	FRAME_CALCULATE(addr, id, off);
+	frames[id] &= ~(1 << off);
+}
+
+static bool frame_test(uint32_t addr)
+{
+	FRAME_CALCULATE(addr, id, off);
+	return frames[id] & (1 << off);
+}
+
+static uint32_t frame_find_free()
+{
+	for(uint32_t i = 0; i < FRAME_INDEX_FROM_BIT(nframes); i++)
+	{
+		// Ignore frames with all bits set
+		if(frames[i] != 0xFFFFFFFF) 
+		{
+			for(uint32_t off = 0; off < 32; off++)
+			{
+				uint32_t test = 1 << off;
+				if(!(frames[i] & test))
+				{
+ 					return i*4*8+off;
+				}
+			}
+		}
+	}
+
+	return (uint32_t)-1;
+}
+
+
+void frame_alloc(page_t* page, bool kernel, bool writeable)
+{
+	if(!page->frame)
+	{
+		// Page is already allocated
+		return;
+	}
+	else
+	{
+		uint32_t id = frame_find_free();
+		if(id == (uint32_t)-1)
+		{
+			klog("[TOS-PALLOC] Could not find a free frame!");
+			// We should panic, TODO
+			return;
+		}
+		frame_set(id * 0x1000);
+		page->present = true;
+		page->rw = writeable;
+		page->user = !kernel;
+		page->frame = id;
+	}
+}
+
+void frame_free(page_t* page)
+{
+	uint32_t frame = page->frame;
+	if(!frame)
+	{
+		// We were given an unallocated page
+		return;
+	}
+	else
+	{
+		frame_clear(frame);
+		page->frame = 0;
+	}
+}
+
 void extract_sectors(multiboot_info_t* mbt, multiboot_memory_map_t* mmap, sector_t* sectors_out, size_t* i)
 {
 	// First pass: Finds usable blocks and stores them
@@ -133,7 +221,7 @@ void palloc_init(multiboot_info_t* mbt)
 
 	klog("%a[TOS-PALLOC]%a Found space for bitmap: r(0x%p)\n", VGA_BRIGHT(VGA_RED), VGA_GRAY, bitmap_target->addr);
 	
-
+	// Allocate the bitmap, to do so we must manually map the memory into pages
 	
 
 }

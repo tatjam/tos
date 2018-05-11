@@ -26,6 +26,8 @@
 
 extern size_t kalloc_dumb_pl_address;
 
+
+
 /*
 	page_init: Initializes the paging system. Will do some rebundant stuff
 		that is already done on boot.s!
@@ -59,5 +61,7 @@ page_t* page_get(uint32_t address, bool make, page_directory_t *dir);
 
 	Creates PT when necessary, and handles page alignment of
 	arguments automatically.
+
+	MUST TAKE PAGE ALIGNED POINTERS!
 */
 void page_map(void* phys, void* virt, uint flags);

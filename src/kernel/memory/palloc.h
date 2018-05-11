@@ -17,18 +17,6 @@
 #include "pageutil.h"
 
 
-typedef struct palloc_block
-{
-	// Is the block usable by the allocator?
-	bool usable : 1;
-	// Is the block currently free?
-	bool free : 1;
-
-	// Add more as necesary, delete padding
-	uint8_t pad : 6;
-
-} palloc_block_t;
-
 
 /*
 	palloc_init: Initializes the physical memory manager, dividing the memory
@@ -38,3 +26,13 @@ typedef struct palloc_block
 	the memory for the physical allocator
 */
 void palloc_init(multiboot_info_t* mbd);
+
+/*
+	frame_alloc: Allocates a frame
+*/
+void frame_alloc(page_t* page, bool kernel, bool writeable);
+
+/*
+	frame_free: Frees a frame
+*/
+void frame_free(page_t* page);

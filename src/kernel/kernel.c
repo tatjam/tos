@@ -64,8 +64,20 @@ void kernel_main(multiboot_info_t* mbd, unsigned int magic)
 	klog("%a[TOS-BOOT]%a Finished Palloc\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 	klog("%a[TOS-BOOT]%a Basic Boot Finished\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 
-	asm_sti();
+	/*for(size_t i = 0xA00; i < 0xFFFFFFFF; i++)
+	{
+		klog("kek: %p -> 0x%p\n", 0xFFFFFFFF - i, page_get_phys(0xFFFFFFFF - i));
+	}*/
+	
 
+	for(size_t i = 0x400000 * 1022; i < 0xFFFFFFFF; i++)
+	{
+		klog("kek: %p -> 0x%p\n", i, page_get_phys(i));
+	}
+
+	//page_map(0x00000000, 0x00000000, 0);
+
+	asm_sti();
 
 
 	while(1)

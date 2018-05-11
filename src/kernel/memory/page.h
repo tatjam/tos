@@ -1,13 +1,16 @@
+#pragma once
 
 typedef struct page
 {
-   uint32_t present    : 1;   // Page present in memory
-   uint32_t rw         : 1;   // Read-only if clear, readwrite if set
-   uint32_t user       : 1;   // Supervisor level only if clear
-   uint32_t accessed   : 1;   // Has the page been accessed since last refresh?
-   uint32_t dirty      : 1;   // Has the page been written to since last refresh?
-   uint32_t unused     : 7;   // Amalgamation of unused and reserved bits
-   uint32_t frame      : 20;  // Frame address (shifted right 12 bits)
+    unsigned int present    : 1;
+    unsigned int rw         : 1;
+    unsigned int user       : 1;
+    unsigned int reserved   : 2;
+    unsigned int accessed   : 1;
+    unsigned int dirty      : 1;
+    unsigned int reserved2  : 2;
+    unsigned int available  : 3;
+    unsigned int frame      : 20;
 } page_t;
 
 typedef struct page_table
@@ -16,12 +19,26 @@ typedef struct page_table
 
 } page_table_t;
 
+typedef struct page_directory_entry
+{
+    size_t present    : 1;
+    size_t rw         : 1;
+    size_t user       : 1;
+    size_t w_through  : 1;
+    size_t cache      : 1;
+    size_t access     : 1;
+    size_t reserved   : 1;
+    size_t page_size  : 1;
+    size_t global     : 1;
+    size_t available  : 3;
+    size_t frame      : 20;
+} page_directory_entry_t;
+
 typedef struct page_directory
 {
-    page_table_t *tables[1024];
+    page_directory_entry_t entries[1024];
+   /* uint32_t tables_phys[1024];
 
-    uint32_t tables_phys[1024];
-
-    uint32_t phys;
+    uint32_t phys;*/
 	
 } page_directory_t;
