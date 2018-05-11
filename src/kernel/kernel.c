@@ -8,6 +8,8 @@
 #include <asmutil.h>
 #include <kio.h>
 
+#include "arch/i386/pit.h"
+
 #include "memory/pageutil.h"
 
 #include "arch/i386/serial.h"
@@ -54,6 +56,8 @@ void kernel_main(multiboot_info_t* mbd, unsigned int magic)
 	idt_configure();
 
 	klog("%a[TOS-BOOT]%a Loaded IDT\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
+
+	pit_set_freq(100);
 
 	palloc_init(mbd);
 	

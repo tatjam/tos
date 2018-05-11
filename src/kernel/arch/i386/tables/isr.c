@@ -1,5 +1,5 @@
 #include "isr.h"
-
+#include "../pit.h"
 
 
 void isr_key(void)
@@ -8,6 +8,10 @@ void isr_key(void)
 	ktty_putc(scancode);
 }
 
+void isr_irq0(void)
+{
+	pit_tick();
+}
 
 void isr_unhandled(void)
 {

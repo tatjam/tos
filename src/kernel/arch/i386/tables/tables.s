@@ -69,6 +69,7 @@ idt_set:
 .global isr_com1_wrap
 .global isr_com2_wrap
 .global isr_pagefault_wrap
+.global isr_irq0_wrap
 
 .align 4
 
@@ -102,6 +103,24 @@ isr_com1_wrap_exit:
     popad
    	iretd
 
+
+isr_irq0_wrap:
+    pushad
+	/* Check for spurious */
+	push 0x23
+	call isr_is_spurious
+	add esp, 4
+	cmp eax, 0
+	jne isr_irq0_wrap_exit
+    cld
+    call isr_irq0
+	jmp isr_irq0_wrap_exit
+isr_irq0_wrap_exit:
+	push 0x23
+	call isr_generic_return
+	add esp, 4
+    popad
+   	iretd
 
 
 isr_com2_wrap:

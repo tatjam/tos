@@ -7,7 +7,7 @@
 		such
 
 		'buf' suffixed stuff means it works on buffers, instead of allocating and returning
-		strings. YOu must provide the buffer.
+		strings. You must provide the buffer.
 
 */
 

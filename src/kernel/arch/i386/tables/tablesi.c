@@ -83,5 +83,6 @@ void idt_configure()
     idt_load_handler(PIC1_OFFSET + 1, isr_key_wrap);
     idt_load_handler(PIC1_OFFSET + 3, isr_com2_wrap);
     idt_load_handler(PIC1_OFFSET + 4, isr_com1_wrap);
+    idt_load_handler(32, isr_irq0_wrap); //32 is irq0
     idt_load_handler(0xE, isr_pagefault_wrap);
 }

@@ -17,6 +17,7 @@ extern void isr_unhandled_wrap(void);
 extern void isr_com1_wrap(void);
 extern void isr_com2_wrap(void);
 extern void isr_pagefault_wrap(void);
+extern void isr_irq0_wrap(void);
 
 void isr_pagefault(uint32_t code);
 
@@ -26,6 +27,8 @@ void isr_unhandled(void);
 
 void isr_com1(void);
 void isr_com2(void);
+
+void isr_irq0(void);
 
 /*
 	isr_generic_return: Handles PIC from all interrupt types

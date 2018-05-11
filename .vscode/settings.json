@@ -18,6 +18,8 @@
 		"tty.h": "c",
 		"phalloc.h": "c",
 		"palloc.h": "c",
-		"kio.h": "c"
+		"kio.h": "c",
+		"pic.h": "c",
+		"pit.h": "c"
 	}
 }
