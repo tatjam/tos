@@ -13,6 +13,7 @@
 .global asm_cli 
 .global asm_sti
 .global asm_int
+.global asm_tlb_notify
 
 /* Disables interrupts */
 asm_cli:
@@ -26,4 +27,9 @@ asm_sti:
 
 asm_int:
 	int 8
+	ret
+
+asm_tlb_notify:
+	mov	%eax, %cr3
+	mov	%cr3, %eax
 	ret

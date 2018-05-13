@@ -169,6 +169,8 @@ isr_pagefault_wrap:
 	add esp, 4
 	cmp eax, 0
 	jne isr_pagefault_wrap_exit
+	mov eax, cr2
+	push eax
 	cld 
 	call isr_pagefault
 	jmp isr_pagefault_wrap_exit

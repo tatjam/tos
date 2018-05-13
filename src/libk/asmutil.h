@@ -23,6 +23,8 @@ extern void asm_sti(void);
 
 extern void asm_int();
 
+extern void asm_tlb_notify();
+
 /* Other helper Thanks OsDev Wiki */
 
 static inline void asm_outb(uint16_t port, uint8_t val)

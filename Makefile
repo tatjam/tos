@@ -10,6 +10,8 @@ AS = C:/MinGW/ghost-i686-elf-tools-win32/ghost-i686-elf-tools/bin/i686-elf-as.ex
 # (Set this to the path to qemu, or simply qemu-system-i386 in linux)
 QEMU = "C:/Program Files/qemu/qemu-system-i386.exe"
 
+GDB = "C:/MinGW/bin/gdb.exe"
+
 # General flags. Used widely
 GFLAGS = -ffreestanding -O2
 
@@ -54,6 +56,7 @@ build: build/tos.bin
 
 debug: build/tos.bin
 	$(QEMU) -kernel build/tos.bin -m 128 -gdb tcp::9000 -S
+
 
 qdebug: build/tos.bin
 	$(QEMU) -kernel build/tos.bin -m 128 -d guest_errors
@@ -104,7 +107,7 @@ clear:
 	rm -rf build
 
 run: build/tos.bin
-	$(QEMU) -kernel build/tos.bin -m 128 -serial file:build/outserial.log
+	$(QEMU) -kernel build/tos.bin -m 100 -serial file:build/outserial.log
 
 
 

@@ -1,7 +1,9 @@
 #include "palloc.h"
 
 extern int _kernel_end_ph;
+extern int _kernel_end;
 extern size_t kalloc_dumb_pl_address;
+extern int boot_pagedir;
 
 
 typedef struct multiboot_memory_map {
@@ -22,13 +24,12 @@ typedef struct sector {
 
 } sector_t;
 
-uint32_t *frames;
+uint8_t* frames_phys;
+uint8_t* frames;
 uint32_t nframes;
 
-#define FRAME_INDEX_FROM_BIT(a) (a/(8*4))
-#define FRAME_OFFSET_FROM_BIT(a) (a%(8*4))
-#define FRAME_CALCULATE(addr, idname, offname) uint32_t idname = FRAME_INDEX_FROM_BIT(addr / 0x1000); \
-	uint32_t offname = FRAME_OFFSET_FROM_BIT(addr / 0x1000);
+#define FRAME_CALCULATE(addr, idname, offname) uint32_t idname = addr / 8; \
+	uint32_t offname = addr % 8;
 
 // Useful, private functions (marked as static)
 static void frame_set(uint32_t addr)
@@ -49,19 +50,43 @@ static bool frame_test(uint32_t addr)
 	return frames[id] & (1 << off);
 }
 
-static uint32_t frame_find_free()
+int32_t test()
 {
-	for(uint32_t i = 0; i < FRAME_INDEX_FROM_BIT(nframes); i++)
+	klog("kek!");
+
+	for(uint32_t i = 0; i < nframes / 8; i++)
 	{
 		// Ignore frames with all bits set
-		if(frames[i] != 0xFFFFFFFF) 
+		if(frames[i] != 0xFF) 
 		{
-			for(uint32_t off = 0; off < 32; off++)
+			for(uint8_t off = 0; off < 8; off++)
 			{
-				uint32_t test = 1 << off;
+				uint8_t test = 1 << off;
 				if(!(frames[i] & test))
 				{
- 					return i*4*8+off;
+ 					return i*8+off;
+				}
+			}
+		}
+	}
+
+	return (int32_t)-1;
+}
+
+uint32_t frame_find_free()
+{
+	for(uint32_t i = 0; i < nframes / 8; i++)
+	{
+		// Ignore frames with all bits set
+		if(frames[i] != 0xFF) 
+		{
+			klog("Found at addr: 0x%p [%u]\n", frames_phys + i, nframes / 8);
+			for(uint8_t off = 0; off < 8; off++)
+			{
+				uint8_t test = 1 << off;
+				if(!(frames[i] & test))
+				{
+ 					return i*8+off;
 				}
 			}
 		}
@@ -117,18 +142,26 @@ void extract_sectors(multiboot_info_t* mbt, multiboot_memory_map_t* mmap, sector
 	{
 		// Log message
 		klog("%a[TOS-PALLOC]%a Reading entry r:(0x%p)...", VGA_BRIGHT(VGA_RED), VGA_GRAY, mmap->base_addr);
-		if(mmap->type == 1 && mmap->base_addr > (size_t)(&_kernel_end_ph))
+		// Check that we contain some stuff not fully used by the kernel
+		if(mmap->type == 1 
+			&& (mmap->base_addr + mmap->length > PAGE_ALIGN((size_t)(&_kernel_end_ph))))
 		{
 			
 			if(mmap->length / 1000000 <= 0)
-				klog("%aUsable%a [%u Kb]\n", (VGA_GREEN), VGA_GRAY, mmap->length / 1000);
+				klog("%aUsable%a [%u Kb]", (VGA_GREEN), VGA_GRAY, mmap->length / 1000);
 			else 
-				klog("%aUsable%a [%u Mb]\n", (VGA_GREEN), VGA_GRAY, mmap->length / 1000000);
+				klog("%aUsable%a [%u Mb]", (VGA_GREEN), VGA_GRAY, mmap->length / 1000000);
 	
 
 			sector_t out;
 			out.valid = true;
 			out.addr = mmap->base_addr;
+			// Adjust for kernel
+			if(out.addr < &_kernel_end_ph)
+			{
+				out.addr = PAGE_ALIGN(&_kernel_end_ph);
+				klog("[ADJ: %p]", out.addr);
+			}
 			out.size = mmap->length;
 
 			sectors_out[*i] = out;
@@ -138,14 +171,29 @@ void extract_sectors(multiboot_info_t* mbt, multiboot_memory_map_t* mmap, sector
 		else
 		{
 			if(mmap->length / 1000000 <= 0)
-				klog("%aNot Usable%a [%u Kb]\n", (VGA_BROWN), VGA_GRAY, mmap->length / 1000);
+				klog("%aNot Usable%a [%u Kb]", (VGA_BROWN), VGA_GRAY, mmap->length / 1000);
 			else 
-				klog("%aNot Usable%a [%u Mb]\n", (VGA_BROWN), VGA_GRAY, mmap->length / 1000000);
+				klog("%aNot Usable%a [%u Mb]", (VGA_BROWN), VGA_GRAY, mmap->length / 1000000);
 		}
+		klog("\n");
 
 
 		mmap = (multiboot_memory_map_t*)((uint)mmap + mmap->size + sizeof(mmap->size));
 	}
+}
+
+bool set_work_page()
+{
+	klog("MAXKEKKING!");
+	if(!page_map_temp(frames_phys))
+	{
+		klog("%a[TOS-PALLOC]%a ERROR: Could not map work page %a\n", VGA_BRIGHT(VGA_RED), VGA_RED, VGA_GRAY);
+		return false;
+	}
+
+	frames = PAGE_TEMP_PAGE;
+
+	return true;
 }
 
 void palloc_init(multiboot_info_t* mbt)
@@ -162,7 +210,7 @@ void palloc_init(multiboot_info_t* mbt)
 
 
 	klog("%a[TOS-PALLOC]%a Memory -> [%u Mb, %u Kb]\n", VGA_BRIGHT(VGA_RED), VGA_GRAY, mem_size / 1000, mem_size);
-	klog("%a[TOS-PALLOC]%a Kernel End -> 0x%p\n", VGA_BRIGHT(VGA_RED), VGA_GRAY, &_kernel_end_ph);
+	klog("%a[TOS-PALLOC]%a Kernel End -> 0x%p virt(0x%p)\n", VGA_BRIGHT(VGA_RED), VGA_GRAY, &_kernel_end_ph, &_kernel_end);
 
 	multiboot_memory_map_t* mmap = (multiboot_memory_map_t*)((uint8_t*)mbt->mmap_addr + 0xC0000000);
 
@@ -193,8 +241,8 @@ void palloc_init(multiboot_info_t* mbt)
 		i++;
 	}
 
-	klog("%a[TOS-PALLOC]%a %u blocks (%u Kb) ready to work on\n", VGA_BRIGHT(VGA_RED), VGA_GRAY, 
-	total_blocks, total_blocks / 1000);
+	klog("%a[TOS-PALLOC]%a %u blocks (%u bytes, %u Kb) ready to work on\n", VGA_BRIGHT(VGA_RED), VGA_GRAY, 
+	total_blocks, total_blocks / 8, total_blocks / 8000);
 
 	// Now find a sector with enough space to hold the bitmap
 
@@ -219,9 +267,94 @@ void palloc_init(multiboot_info_t* mbt)
 		return;
 	}
 
-	klog("%a[TOS-PALLOC]%a Found space for bitmap: r(0x%p)\n", VGA_BRIGHT(VGA_RED), VGA_GRAY, bitmap_target->addr);
-	
-	// Allocate the bitmap, to do so we must manually map the memory into pages
-	
+	// Not needed?
+	//bitmap_target->addr = PAGE_ALIGN(bitmap_target->addr);
 
+	klog("%a[TOS-PALLOC]%a Found space for bitmap: r(0x%p)\n", VGA_BRIGHT(VGA_RED), VGA_GRAY, bitmap_target->addr);
+	klog("\nPage directory location: 0x%p -> 0x%p\n", &boot_pagedir, ((size_t)(&boot_pagedir) + 0x1000));
+	// Allocate the bitmap, to do so we must manually map the memory into pages wt 
+	frames_phys = (void*)((size_t)bitmap_target->addr);
+	frames = (void*)PAGE_TEMP_PAGE;
+
+
+	if(set_work_page())
+	{
+		klog("FRAME ADDRESS: 0x%p >0x%p<\n", frames_phys, PAGE_TEMP_PAGE);
+
+		nframes = total_blocks;
+		size_t bitmap_top = total_blocks / 8 / 4096;
+		bitmap_top = (bitmap_top == 0) ? 1 : bitmap_top;
+		
+		size_t final = 0;
+		// Set all as safe to use
+		for(size_t i = 0; i < total_blocks; i++)
+		{
+			// Except those used by the bitmap
+			if(i < bitmap_top)
+			{
+				frame_set(i);
+			}
+			else
+			{
+				frame_clear(i);
+				final++;
+			}	
+
+
+		}
+
+		klog("%a[TOS-PALLOC]%a Final blocks %u (%u used by bitmap)\n", VGA_BRIGHT(VGA_RED), VGA_GRAY, final, total_blocks - final);
+	}
+
+}
+
+void* palloc_get()
+{
+	set_work_page();
+	size_t id = frame_find_free();
+	frame_set(id);
+	klog("{ID: %u}\n", id);
+	return (void*)(frames_phys + id * 0x1000);
+}
+
+bool palloc_free(void* ptr)
+{
+	set_work_page();
+
+	if(!PAGE_IS_ALIGN(ptr))
+	{
+		return false;
+	}
+	else
+	{
+		size_t id = ((size_t)ptr - (size_t)frames_phys) / 0x1000;
+		frame_clear(id);
+		return true;
+	}
+
+	return false;
+}
+
+
+void dump_first_few(int j)
+{
+	set_work_page();
+	
+	klog("\n");
+	for(uint32_t i = j; i < j + 2; i++)
+	{
+		for(uint8_t off = 0; off < 8; off++)
+		{
+			uint8_t test = 1 << off;
+			if(frames[i] & test)
+			{
+				klog("X");
+			}
+			else
+			{
+				klog(".");
+			}
+		}
+		klog(" | 0x%p\n", page_get_phys(frames + i));
+	}
 }

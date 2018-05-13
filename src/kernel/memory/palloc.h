@@ -14,6 +14,7 @@
 #include <tty.h>
 #include <asmutil.h>
 #include <kio.h>
+#include "kalloc.h"
 #include "pageutil.h"
 
 
@@ -28,11 +29,16 @@
 void palloc_init(multiboot_info_t* mbd);
 
 /*
-	frame_alloc: Allocates a frame
+	palloc_get: Obtains a single 4Kb memory segment and gets 
+		you the start location in physical memory
 */
-void frame_alloc(page_t* page, bool kernel, bool writeable);
+void* palloc_get();
 
 /*
-	frame_free: Frees a frame
+	palloc_free: Frees the 4Kb memory segment at given location.
+		Returns true if successfull or false otherwise.
+		It will fail on un-aligned pointers!
 */
-void frame_free(page_t* page);
+bool palloc_free(void* ptr);
+
+void dump_first_few(int j);

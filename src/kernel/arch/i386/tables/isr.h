@@ -19,7 +19,7 @@ extern void isr_com2_wrap(void);
 extern void isr_pagefault_wrap(void);
 extern void isr_irq0_wrap(void);
 
-void isr_pagefault(uint32_t code);
+void isr_pagefault(uint32_t code, uint32_t cr2);
 
 void isr_key(void);
 

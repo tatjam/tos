@@ -28,6 +28,7 @@ void kernel_main(multiboot_info_t* mbd, unsigned int magic)
 	ktty_init();
 	ktty_clear();
 
+
 	ktty_putf("%a[TOS-BOOT]%a VGA Initialized\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 	ktty_putf("%a[TOS-BOOT]%a Checking multiboot (0x%x): ", VGA_BRIGHT(VGA_RED), VGA_GRAY, magic);
 
@@ -49,7 +50,7 @@ void kernel_main(multiboot_info_t* mbd, unsigned int magic)
 	klog("%a[TOS-BOOT]%a GDT loaded\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 
 	page_init();
-	
+
 	klog("%a[TOS-BOOT]%a Loaded Basic Paging Tables\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 		
 	idt_prepare();	
@@ -64,21 +65,55 @@ void kernel_main(multiboot_info_t* mbd, unsigned int magic)
 	klog("%a[TOS-BOOT]%a Finished Palloc\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 	klog("%a[TOS-BOOT]%a Basic Boot Finished\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 
-	/*for(size_t i = 0xA00; i < 0xFFFFFFFF; i++)
-	{
-		klog("kek: %p -> 0x%p\n", 0xFFFFFFFF - i, page_get_phys(0xFFFFFFFF - i));
-	}*/
-	
+	dump_first_few(0);
 
-	for(size_t i = 0x400000 * 1022; i < 0xFFFFFFFF; i++)
+	void *a, *b, *c;
+	a = palloc_get();
+	b = palloc_get();
+	c = palloc_get();	
+	klog("%p %p %p", a, b, c);
+
+	dump_first_few(0);
+
+	klog("\nMAXKEK: 0x%p\n", (size_t)a);
+
+	page_map_temp(0x2FF000);
+	for(size_t i = 0; i < 1024; i++)
 	{
-		klog("kek: %p -> 0x%p\n", i, page_get_phys(i));
+
+		//klog("%p\n", page_get_phys(PAGE_TEMP_PAGE + i));
+		*(uint8_t*)(PAGE_TEMP_PAGE + i) = 0xFF;	
 	}
 
-	//page_map(0x00000000, 0x00000000, 0);
+	dump_first_few(0);
+
+	/*a = palloc_get();
+	b = palloc_get();
+	c = palloc_get();	
+	klog("\n %p %p %p", a, b, c);*/
+
+
+	/*
+	for(size_t i = 0; i < 10000; i++)
+	{
+		page_path_t path = page_find_free(page_get_default_dir());
+		if(path.pt_index < 0 || path.pd_index < 0)
+		{
+			klog("None found!\n");
+		}
+		else
+		{
+			page_map_temp((void*)(page_get_default_dir()->entries[path.pd_index].frame << (size_t)12));
+			klog("sframe:0x%p, pd:%u, pt:%u, frame:%p\n", page_get_default_dir()->entries[path.pd_index].frame, 
+				path.pd_index, path.pt_index, ((page_table_t*)PAGE_TEMP_PAGE)->pages[path.pt_index].frame);
+			((page_table_t*)PAGE_TEMP_PAGE)->pages[path.pt_index].frame = i;
+			((page_table_t*)PAGE_TEMP_PAGE)->pages[path.pt_index].present = true;
+
+		}
+	}*/
+
 
 	asm_sti();
-
 
 	while(1)
 	{
