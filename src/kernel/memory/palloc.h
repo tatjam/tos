@@ -42,3 +42,25 @@ void* palloc_get();
 bool palloc_free(void* ptr);
 
 void dump_first_few(int j);
+
+/*
+	palloc: Allocates a single page and returns it
+		Used internally by the other allocators
+
+	If pd is null it will use the default directory
+
+	NOTE: pd must be in virtual memory (you can map it using page_map_temp)
+*/
+void* palloc(page_directory_t* pd, size_t count, bool user, bool writeable);
+
+/*
+	pfree: Frees given virtual memory address
+		Used internally by the other allocators
+		
+	If pd is null it will use the default directory
+
+	NOTE: pd must be in virtual memory! (you can map it using page_map_temp)
+
+*/
+void pfree(void* mem, size_t count, page_directory_t* pd);
+

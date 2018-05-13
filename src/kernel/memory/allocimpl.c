@@ -18,10 +18,15 @@ int liballoc_unlock()
 
 void* liballoc_alloc(int pages)
 {
-	return NULL;
+	klog("Allocating %i pages...", pages);
+	void* ret = palloc(NULL, pages, false, true);
+	klog("@ 0x%p\n", ret);
+	return ret;
 }
 
 int liballoc_free(void* ptr, int pages)
 {
+	klog("Freeing %i pages...", pages);
+	pfree(ptr, pages, NULL);
 	return 0;
 }

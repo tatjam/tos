@@ -14,9 +14,7 @@
 
 #define MODE	MODE_BEST
 
-#ifdef DEBUG
-#include <stdio.h>
-#endif
+#define DEBUG
 
 
 struct boundary_tag* l_freePages[MAXEXP];		//< Allowing for 2^MAXEXP blocks
@@ -31,7 +29,7 @@ unsigned int l_inuse = 0;			//< The amount of memory in use (malloc'ed).
 
 static int l_initialized = 0;			//< Flag to indicate initialization.	
 static int l_pageSize  = 4096;			//< Individual page size
-static int l_pageCount = 16;			//< Minimum number of pages to allocate.
+static int l_pageCount = 4;			//< Minimum number of pages to allocate.
 
 
 // ***********   HELPER FUNCTIONS  *******************************
@@ -131,7 +129,6 @@ static void dump_array()
 		}
 
 	klog("'*' denotes a split to the left/right of a tag\n");
-	fflush( stdout );
 }
 #endif
 

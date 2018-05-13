@@ -64,6 +64,8 @@ qdebug: build/tos.bin
 debug-reset: build/tos.bin
 	$(QEMU) -kernel build/tos.bin -m 128 -d cpu_reset,int
 
+debug-monitor:
+	$(QEMU) -kernel build/tos.bin -m 128 -monitor stdio
 
 # To be used when changing small stuff in .h files or similar
 force: clear run

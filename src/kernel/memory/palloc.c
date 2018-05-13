@@ -80,7 +80,7 @@ uint32_t frame_find_free()
 		// Ignore frames with all bits set
 		if(frames[i] != 0xFF) 
 		{
-			klog("Found at addr: 0x%p [%u]\n", frames_phys + i, nframes / 8);
+			//klog("Found at addr: 0x%p [%u]\n", frames_phys + i, nframes / 8);
 			for(uint8_t off = 0; off < 8; off++)
 			{
 				uint8_t test = 1 << off;
@@ -184,7 +184,7 @@ void extract_sectors(multiboot_info_t* mbt, multiboot_memory_map_t* mmap, sector
 
 bool set_work_page()
 {
-	klog("MAXKEKKING!");
+	//klog("MAXKEKKING!");
 	if(!page_map_temp(frames_phys))
 	{
 		klog("%a[TOS-PALLOC]%a ERROR: Could not map work page %a\n", VGA_BRIGHT(VGA_RED), VGA_RED, VGA_GRAY);
@@ -313,7 +313,7 @@ void* palloc_get()
 	set_work_page();
 	size_t id = frame_find_free();
 	frame_set(id);
-	klog("{ID: %u}\n", id);
+	//klog("{ID: %u}\n", id);
 	return (void*)(frames_phys + id * 0x1000);
 }
 
@@ -357,4 +357,95 @@ void dump_first_few(int j)
 		}
 		klog(" | 0x%p\n", page_get_phys(frames + i));
 	}
+}
+
+void* palloc(page_directory_t* pd, size_t count, bool user, bool writeable)
+{
+	klog("palloc called\n");
+	if(pd == NULL)
+	{
+		pd = page_get_default_dir();
+	}
+
+	// We assign ourselves
+	page_path_t path = page_find_free(pd, count, false);
+	if(path.pd_index < 0 || path.pt_index < 0)
+	{
+		return NULL;
+	}
+
+	klog("Found %i pages\n", count);
+	
+	for(size_t i = 0; i < count; i++)
+	{
+		size_t ri = i + path.index;
+
+		size_t pd_index = ri / 1024;
+		size_t pt_index = ri % 1024;
+
+		// Find a free physical memory piece
+		void* phloc = palloc_get();
+		if(phloc == NULL)
+		{
+			return NULL;
+		}
+
+		// Claim the page and assign the physical memory
+		page_map_temp(pd->entries[pd_index].frame << 12);
+		page_table_t* pt = (page_table_t*)(PAGE_TEMP_PAGE);
+
+		memset(&pt->pages[pt_index], 0, 4);
+		pt->pages[pt_index].frame = ((size_t)phloc >> 12);
+		pt->pages[pt_index].present = true;
+		pt->pages[pt_index].user = user;
+		pt->pages[pt_index].rw = writeable;
+
+		klog("[0x%p](0x%p, 0x%p) -> [0x%p] [0x%p]\n", i, pd_index, pt_index, phloc, pt->pages[pt_index].frame);
+
+	}
+
+
+	// Return the virtual address
+	// 	- Each page directory entry increases the virtual address by 0x400000
+	//	- As each directory entry contains 1024 pages, each page must
+	//		increase the virtual address by 0x400000 / 1024 = 4096 = 0x1000
+	size_t out = (size_t)path.pd_index * (size_t)0x400000 + (size_t)path.pt_index * (size_t)0x1000;
+
+	klog("Done! out: %p (%p/%p)\n", out, path.pd_index, path.pt_index);
+
+	asm_tlb_notify();
+
+	return (void*)out;
+}
+
+void pfree(void* mem, size_t count, page_directory_t* pd)
+{
+	if(pd == NULL)
+	{
+		pd = page_get_default_dir();
+	}
+	// Find its physical location in order to 
+	// free the physical memory:
+	uint8_t* ph = page_get_phys(mem);
+	uint8_t* memc = (uint8_t*)mem;
+
+	for(size_t i = 0; i < count; i++)
+	{
+		ph += 0x1000;
+		memc += 0x1000;
+
+		// Free the physical memory
+		palloc_free(ph);
+	
+
+		// Now free the actual page and set as unassigned
+		size_t pd_index = (size_t)memc / (size_t)0x400000;
+		size_t pt_index = ((size_t)memc % (size_t)0x400000) / 0x1000;
+
+		page_map_temp(pd->entries[pd_index].frame << 12);
+		page_table_t* pt = (page_table_t*)PAGE_TEMP_PAGE;
+		memset(&pt->pages[pt_index], 0, 4);
+	}
+
+	// Done!
 }

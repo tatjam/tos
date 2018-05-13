@@ -112,7 +112,6 @@ void serial_init()
 			}
 			else if(fmt[i] == 'i')
 			{
-				// TODO
 				int num = (int)va_arg(*parameters, int); 
 				kitoa_buf(serial_numbuff, sizeof(serial_numbuff), num, 10);
 				size_t w = serial_puts(serial_numbuff);

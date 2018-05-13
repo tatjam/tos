@@ -39,6 +39,8 @@ typedef struct page_path
 	int32_t pd_index;
 	// Index in the page table
 	int32_t pt_index;
+	// Real index
+	int32_t index;
 } page_path_t;
 
 /*
@@ -67,8 +69,16 @@ void* page_get_phys(void* addr);
 page_directory_entry_t* page_map_temp(void* phys);
 
 /*
-	page_find_free_page: Finds a free page in a pagetable
+	page_map_temp_restore: Restores the previous temporal mapping
 */
-page_path_t page_find_free(page_directory_t* pt);
+page_directory_entry_t* page_map_temp_restore();
+
+
+/*
+	page_find_free: Finds ``num`` consecutive free pages in the pagedirectory
+
+		If assign is true it will mark the new pages as used
+*/
+page_path_t page_find_free(page_directory_t* pd, size_t num, bool assign);
 
 page_directory_t* page_get_default_dir();

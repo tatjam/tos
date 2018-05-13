@@ -181,7 +181,7 @@ void ktty_scroll()
 				vga_text_entry_t clear = ktty_get_clear();
 				if(ktty_set(x, y, clear) != KRET_SUCCESS)
 				{
-					kerr("VGA width invalid. Make sure you have initialized VGA");
+					klog("[ERROR] VGA width invalid. Make sure you have initialized VGA");
 				}
 			}
 			else
@@ -191,7 +191,7 @@ void ktty_scroll()
 
 				if(ktty_set(x, y, below) != KRET_SUCCESS)
 				{
-					kerr("VGA width invalid. Make sure you have initialized VGA");
+					klog("[ERROR] VGA width invalid. Make sure you have initialized VGA");
 				}
 
 			}
@@ -285,7 +285,6 @@ void ktty_putf_list(char* fmt, va_list* parameters)
 			}
 			else if(fmt[i] == 'i')
 			{
-				// TODO
 				int num = va_arg(*parameters, int); 
 				kitoa_buf(numbuff, sizeof(numbuff), num, 10);
 				size_t w = ktty_puts(numbuff);

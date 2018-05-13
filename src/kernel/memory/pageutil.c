@@ -8,6 +8,9 @@
 extern uint32_t* boot_pagedir;
 extern uint32_t* boot_pagetab1;
 
+static size_t old_addr;
+static size_t act_addr;
+
 
 // This page is mapped to the second topmost
 // directory entry and is used for working on stuff
@@ -17,10 +20,16 @@ page_table_t page_temp_page __attribute__((aligned (0x1000))) = {0};
 void page_init()
 {
     page_map_temp(0x0);
+    old_addr = 0;
+    act_addr = 0;
 }
+
 
 page_directory_entry_t* page_map_temp(void* phys)
 {
+    old_addr = act_addr;
+    act_addr = (size_t)phys;
+
     if(!PAGE_IS_ALIGN((size_t)phys))
     {
         klog("Could not!");
@@ -47,6 +56,11 @@ page_directory_entry_t* page_map_temp(void* phys)
     asm_tlb_notify();
 
     return &pd->entries[1022];
+}
+
+page_directory_entry_t* page_map_temp_restore()
+{
+    page_map_temp((void*)old_addr);
 }
 
 void* page_get_phys(void* addr)
@@ -92,87 +106,139 @@ void page_map(void* phys, void* virt, uint flags)
     // or you might not notice the change.
 }
 
-static void page_find_free_low(page_directory_t* pd, page_path_t* out, int start_search)
+static page_t page_linear(page_directory_t* pd, size_t address)
 {
-    size_t i = 0;
-    if(start_search > 0)
+    size_t pd_address = address / 1024;
+    size_t pt_address = address % 1024;
+
+    if(pd->entries[pd_address].present)
     {
-        i = (size_t)start_search;
+        page_map_temp(pd->entries[pd_address].frame << 12);
+        page_table_t* pt = (page_table_t*)PAGE_TEMP_PAGE;
+        page_t ret = pt->pages[pt_address];
+        page_map_temp_restore();
+        return ret;
     }
-    // 1022 and up are kernel reserved
-    for(i; i < 1021; i++)    
+    else
     {
-        if(pd->entries[i].present)
+        page_t invalid;
+        invalid.present = false;
+        return invalid;
+    }
+}
+
+static bool page_prepare(page_directory_t* pd, size_t index, size_t count, bool assign)
+{
+    for(size_t i = 0; i < count; i++)
+    {
+        size_t ri = index + i;
+        size_t pd_address = ri / 1024;
+        size_t pt_address = ri % 1024;
+        
+        // Check for valid page directory entry
+        if(pd->entries[pd_address].present)
         {
-            size_t ptr = pd->entries[i].frame;
-            page_table_t* pt = (page_table_t*)(ptr << 12);
-            page_map_temp(pt); // We know pt is page aligned
-            page_table_t* ptv = (page_table_t*)PAGE_TEMP_PAGE;
-            for(size_t j = 0; j < 1024; j++)
+            // Good! (Maybe check some other stuff TODO)
+        }
+        else
+        {
+            // We must allocate a page_table!
+            void* phys = palloc_get();
+            if(phys == NULL)
             {
-                if(!ptv->pages[j].present && i != 768)
-                {
-                    out->pd_index = i;
-                    out->pt_index = j;
-                    return;
-                }
+                return false;  // Out of memory
+            }
+
+            klog("Allocated page table @ 0x%p\n", phys);
+
+            page_map_temp(phys);
+            // Build the page table, clear memory (set to zero)
+            memset(PAGE_TEMP_PAGE, 0, 0x1000);
+            page_map_temp_restore();
+
+            // Assign this entry to that new pagetable
+            pd->entries[pd_address].present = true;
+            pd->entries[pd_address].frame = (size_t)phys >> 12;
+            pd->entries[pd_address].rw = 1;
+            // TODO: User processes etc...
+        }
+
+        if(assign)
+        {
+
+            page_map_temp(pd->entries[pd_address].frame << 12);
+            page_table_t* pt = (page_table_t*)PAGE_TEMP_PAGE;
+            pt->pages[pt_address].present = true;
+            page_map_temp_restore();
+        }
+    }
+
+    asm_tlb_notify();
+
+    return true;
+}
+
+static void page_find_free_low(page_directory_t* pd, page_path_t* out, size_t count, bool assign)
+{
+    size_t consecutive = 0;
+    size_t ori = 0;
+
+    // We ignore page 0 as it will confuse all allocators
+    for(size_t i = 1; i < 1021 * 1024; i++)
+    {
+        // This goes page per page
+        page_t pag = page_linear(pd, i);
+        if(pag.present == 0)
+        {
+            consecutive++;
+        }
+        else
+        {
+            consecutive = 0;
+            ori = i;
+        }
+
+        //klog("Consecutive: %u/%u\n", consecutive, count);
+
+        if(consecutive >= count)
+        {
+            klog("Found!");
+            ori++;
+            // Found enough consecutive pages!
+            // Go over each of them making sure
+            // they have a valid page_directory entry
+            if(page_prepare(pd, ori, count, assign))
+            {
+                // Good, return it
+                out->pd_index = ori / 1024;
+                out->pt_index = ori % 1024;
+                out->index = ori;
+                return;
+            }
+            else
+            {
+                // Out of memory :(
+                return;
             }
         }
     }
+    
 }
 
-// Returns the index of the newly created pagetable
-// If none found returns a negative number (-1)
-static int page_create_anywhere(page_directory_t* pd)
-{
-    int out = -1;
-    for(size_t i = 0; i < 1024; i++)    
-    {
-        if(!pd->entries[i].present)
-        {
-            // Ask the physical manager for a 4Kb chunk (physical address)
-            void* phpos = palloc_get();
-
-            // (We know it's page aligned)
-            page_map_temp(phpos);
-            klog("[Allocated at 0x%p]", phpos);
-            // Zero the area
-            memset((void*)PAGE_TEMP_PAGE, 0, 1024 * 4);
-            pd->entries[i].present = true;
-            pd->entries[i].frame = (size_t)phpos >> 12;
-
-            return i;
-        }
-    }
-
-    return out;
-}
-
-/*
-	page_find_free_page: Finds a free page in a pagetable
-*/
-page_path_t page_find_free(page_directory_t* pd)
+page_path_t page_find_free(page_directory_t* pd, size_t num, bool assign)
 {
     page_path_t out;
     out.pd_index = -1;
     out.pt_index = -1;
 
+    if(num == 0)
+    {
+        return out;
+    }
+
     // We prefer not to create a page table
     // but if it's neccesary we will
-    page_find_free_low(pd, &out, -1);
-
-    if(out.pd_index == -1 || out.pt_index == -1)
-    {
-        klog("FIND...");
-        // We have not returned yet, try to allocate a new pagetable
-        int loc = page_create_anywhere(pd);
-
-        klog("FOUND: %i\n", loc);
-        if(loc >= 0)
-        {
-            page_find_free_low(pd, &out, loc);
-        }
-    }
+    page_find_free_low(pd, &out, num, assign);
 
     return out;
 }

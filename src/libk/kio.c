@@ -183,7 +183,6 @@ kret_t kprintf_buf(char* buffer, size_t bufsize, char* fmt, ...)
 			}
 			else if(fmt[i] == 'i')
 			{
-				// TODO
 				int num = va_arg(parameters, int); 
 				kitoa_buf(crossbuffer, sizeof(crossbuffer), num, 10);
 				// Write the string

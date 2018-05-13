@@ -4,6 +4,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "palloc.h"
 
 /* We use stdlib macros */
 #define _ALLOC_SKIP_DEFINE
