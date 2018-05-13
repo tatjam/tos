@@ -21,7 +21,6 @@ void page_init()
 
 page_directory_entry_t* page_map_temp(void* phys)
 {
-    klog("Mapping to: %p\n", (size_t)phys);
     if(!PAGE_IS_ALIGN((size_t)phys))
     {
         klog("Could not!");
