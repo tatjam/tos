@@ -14,7 +14,7 @@
 
 #define MODE	MODE_BEST
 
-#define DEBUG
+//#define DEBUG
 
 
 struct boundary_tag* l_freePages[MAXEXP];		//< Allowing for 2^MAXEXP blocks

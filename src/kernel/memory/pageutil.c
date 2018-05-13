@@ -98,7 +98,7 @@ void page_map(void* phys, void* virt, uint flags)
 
     size_t access = (size_t)(pt + ptindex); 
 
-    klog("ptindex: %p, pdindex: %p, pt: %p access: %p", ptindex, pdindex, pt, access);
+    // klog("ptindex: %p, pdindex: %p, pt: %p access: %p", ptindex, pdindex, pt, access);
 
     pt[ptindex] = ((unsigned long)phys) | (flags & 0xFFF) | 0x01; // Present
  
@@ -149,7 +149,7 @@ static bool page_prepare(page_directory_t* pd, size_t index, size_t count, bool 
                 return false;  // Out of memory
             }
 
-            klog("Allocated page table @ 0x%p\n", phys);
+            //klog("Allocated page table @ 0x%p\n", phys);
 
             page_map_temp(phys);
             // Build the page table, clear memory (set to zero)
@@ -202,7 +202,7 @@ static void page_find_free_low(page_directory_t* pd, page_path_t* out, size_t co
 
         if(consecutive >= count)
         {
-            klog("Found!");
+           // klog("Found!");
             ori++;
             // Found enough consecutive pages!
             // Go over each of them making sure

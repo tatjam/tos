@@ -52,7 +52,7 @@ static bool frame_test(uint32_t addr)
 
 int32_t test()
 {
-	klog("kek!");
+	//klog("kek!");
 
 	for(uint32_t i = 0; i < nframes / 8; i++)
 	{
@@ -361,7 +361,7 @@ void dump_first_few(int j)
 
 void* palloc(page_directory_t* pd, size_t count, bool user, bool writeable)
 {
-	klog("palloc called\n");
+	//klog("palloc called\n");
 	if(pd == NULL)
 	{
 		pd = page_get_default_dir();
@@ -374,7 +374,7 @@ void* palloc(page_directory_t* pd, size_t count, bool user, bool writeable)
 		return NULL;
 	}
 
-	klog("Found %i pages\n", count);
+	//klog("Found %i pages\n", count);
 	
 	for(size_t i = 0; i < count; i++)
 	{
@@ -400,7 +400,7 @@ void* palloc(page_directory_t* pd, size_t count, bool user, bool writeable)
 		pt->pages[pt_index].user = user;
 		pt->pages[pt_index].rw = writeable;
 
-		klog("[0x%p](0x%p, 0x%p) -> [0x%p] [0x%p]\n", i, pd_index, pt_index, phloc, pt->pages[pt_index].frame);
+		//klog("[0x%p](0x%p, 0x%p) -> [0x%p] [0x%p]\n", i, pd_index, pt_index, phloc, pt->pages[pt_index].frame);
 
 	}
 
@@ -411,7 +411,7 @@ void* palloc(page_directory_t* pd, size_t count, bool user, bool writeable)
 	//		increase the virtual address by 0x400000 / 1024 = 4096 = 0x1000
 	size_t out = (size_t)path.pd_index * (size_t)0x400000 + (size_t)path.pt_index * (size_t)0x1000;
 
-	klog("Done! out: %p (%p/%p)\n", out, path.pd_index, path.pt_index);
+	//klog("Done! out: %p (%p/%p)\n", out, path.pd_index, path.pt_index);
 
 	asm_tlb_notify();
 
