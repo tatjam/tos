@@ -53,11 +53,12 @@ void page_init();
 */
 void* page_get_phys(void* addr);
 
-/*
+
+/*	
 	page_map_temp: Maps the temporal (work) pagetable
 		to given physical address. Maps the whole
-		pagetable to increasing pointers. The page is located
-		from 0xFF7FFFFF to 0xFFBFFFFF
+		pagetable to increasing pointers. Maps as many 
+		pages as you tell it to
 	
 	MUST TAKE PAGE ALIGNED POINTER!
 
@@ -65,8 +66,9 @@ void* page_get_phys(void* addr);
 
 	Returns NULL if given pointer for some reason is invalid,
 	such as being not aligned
+
 */
-page_directory_entry_t* page_map_temp(void* phys);
+page_directory_entry_t* page_map_temp(void* phys, size_t count);
 
 /*
 	page_map_temp_restore: Restores the previous temporal mapping
@@ -82,3 +84,11 @@ page_directory_entry_t* page_map_temp_restore();
 page_path_t page_find_free(page_directory_t* pd, size_t num, bool assign);
 
 page_directory_t* page_get_default_dir();
+
+/*
+	page_create_task: Creates a new page directory for a task,
+		cloning the stack and linking the kernel.
+
+		Takes physical address and returns a physical address!
+*/
+page_directory_t* page_create_task(page_directory_t* actual);

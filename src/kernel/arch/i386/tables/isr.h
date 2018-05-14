@@ -11,6 +11,7 @@
 #include "../pic.h"
 #include <tty.h>
 #include "../serial.h"
+#include "../../../driver/keyboard.h"
 
 extern void isr_key_wrap(void);
 extern void isr_unhandled_wrap(void);

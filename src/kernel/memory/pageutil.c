@@ -10,25 +10,29 @@ extern uint32_t* boot_pagetab1;
 
 static size_t old_addr;
 static size_t act_addr;
+static size_t old_size;
+static size_t act_size;
 
 
 // This page is mapped to the second topmost
 // directory entry and is used for working on stuff
 // Ignore the error, it is a valid gcc attribute, but clang invalid
-page_table_t page_temp_page __attribute__((aligned (0x1000))) = {0};
+page_table_t page_temp_page __attribute__((aligned (0x1000)));
 
 void page_init()
 {
-    page_map_temp(0x0);
+    page_map_temp(0x0, 1024);
     old_addr = 0;
     act_addr = 0;
 }
 
 
-page_directory_entry_t* page_map_temp(void* phys)
+page_directory_entry_t* page_map_temp(void* phys, size_t count)
 {
     old_addr = act_addr;
+    old_size = act_size;
     act_addr = (size_t)phys;
+    act_size = count;
 
     if(!PAGE_IS_ALIGN((size_t)phys))
     {
@@ -38,7 +42,7 @@ page_directory_entry_t* page_map_temp(void* phys)
 
    // phys = (size_t)phys >> 12;
 
-    for(size_t i = 0; i < 1024; i++)
+    for(size_t i = 0; i < count; i++)
     {
         memset(&page_temp_page.pages[i], 0, 4);
         page_temp_page.pages[i].frame = ((size_t)phys >> 12) + i;
@@ -60,7 +64,7 @@ page_directory_entry_t* page_map_temp(void* phys)
 
 page_directory_entry_t* page_map_temp_restore()
 {
-    page_map_temp((void*)old_addr);
+    return page_map_temp((void*)old_addr, old_size);
 }
 
 void* page_get_phys(void* addr)
@@ -113,7 +117,7 @@ static page_t page_linear(page_directory_t* pd, size_t address)
 
     if(pd->entries[pd_address].present)
     {
-        page_map_temp(pd->entries[pd_address].frame << 12);
+        page_map_temp(pd->entries[pd_address].frame << 12, 1);
         page_table_t* pt = (page_table_t*)PAGE_TEMP_PAGE;
         page_t ret = pt->pages[pt_address];
         page_map_temp_restore();
@@ -151,9 +155,9 @@ static bool page_prepare(page_directory_t* pd, size_t index, size_t count, bool 
 
             //klog("Allocated page table @ 0x%p\n", phys);
 
-            page_map_temp(phys);
+            page_map_temp(phys, 1);
             // Build the page table, clear memory (set to zero)
-            memset(PAGE_TEMP_PAGE, 0, 0x1000);
+            memset((void*)PAGE_TEMP_PAGE, 0, 0x1000);
             page_map_temp_restore();
 
             // Assign this entry to that new pagetable
@@ -166,7 +170,7 @@ static bool page_prepare(page_directory_t* pd, size_t index, size_t count, bool 
         if(assign)
         {
 
-            page_map_temp(pd->entries[pd_address].frame << 12);
+            page_map_temp(pd->entries[pd_address].frame << 12, 1);
             page_table_t* pt = (page_table_t*)PAGE_TEMP_PAGE;
             pt->pages[pt_address].present = true;
             page_map_temp_restore();
@@ -246,4 +250,107 @@ page_path_t page_find_free(page_directory_t* pd, size_t num, bool assign)
 page_directory_t* page_get_default_dir()
 {
     return (page_directory_t*)0xFFFFF000;
+}
+
+#define PAGE_CLONE_BUFFER 128
+
+static void* page_clone_table_data(void* frame)
+{
+    // Allocate the physical space
+    void* dout = palloc_get();
+
+    // Work in chunks of X bytes for speed
+    uint8_t buff[PAGE_CLONE_BUFFER] = {0};
+
+    for(size_t i = 0; i < 0x1000; i += PAGE_CLONE_BUFFER)
+    {
+        page_map_temp(frame, 1);
+        // Load x bytes
+        for(size_t j = 0; j < PAGE_CLONE_BUFFER; j++)
+        {
+            buff[j] = ((uint8_t*)PAGE_TEMP_PAGE)[j + i];
+        }
+
+        page_map_temp(dout, 1);
+        // Write x bytes
+        for(size_t j = 0; j < PAGE_CLONE_BUFFER; j++)
+        {
+            ((uint8_t*)(PAGE_TEMP_PAGE))[j + i] = buff[j];
+        }
+    }
+
+    return dout;
+}
+
+// Takes and returns physical addresses
+static page_table_t* page_clone_table(page_table_t* src)
+{
+    page_table_t* ntable = palloc_get();
+
+    // Zero it
+    page_map_temp(ntable, 1);
+    memset((void*)PAGE_TEMP_PAGE, 0, 0x1000);
+
+    page_table_t* src_v = (page_table_t*)PAGE_TEMP_PAGE;
+    page_table_t* ntable_v = (page_table_t*)PAGE_TEMP_PAGE;
+    page_map_temp(src, 1);
+
+    for(size_t i = 0; i < 1024; i++)
+    {
+        page_t dat = src_v->pages[i];
+        if(dat.present)
+        {
+            page_map_temp(ntable, 1);
+            ntable_v->pages[i] = dat;
+            size_t nplace = (size_t)page_clone_table_data((void*)(dat.frame << 12)) >> 12;
+            page_map_temp(ntable, 1);
+            ntable_v->pages[i].frame = nplace;
+        }        
+    }
+
+    return ntable;
+}
+
+page_directory_t* page_create_task(page_directory_t* src)
+{
+    // Allocate space for the new directory
+    page_directory_t* ndir = palloc_get();
+    // Zero it
+    page_map_temp(ndir, 1);
+    memset((void*)PAGE_TEMP_PAGE, 0, 0x1000);
+
+    page_map_temp(src, 1);
+    page_directory_t* src_v = (page_directory_t*)PAGE_TEMP_PAGE;
+
+    for(size_t i = 0; i < 1024; i++)
+    {
+        if(src_v->entries[i].present)
+        {
+            page_map_temp(src, 1);
+            // Note that we don't need to map it
+            if(memcpm(&src_v->entries[i], &page_get_default_dir()->entries[i], 4) == 0)
+            {
+                // Kernel (note that we change the page so src_v "changes")
+                // ndir is NOT A TYPO
+                page_directory_entry_t entry = src_v->entries[i];
+                page_map_temp(ndir, 1); 
+                    src_v->entries[i] = entry; // src_v is actually ndir
+                page_map_temp_restore();
+
+            }
+            else
+            {
+                // Not-Kernel, copy it, allocating a new frame and all
+                // so the father process does not see child's changes
+                page_directory_entry_t entry = src_v->entries[i];
+                page_table_t* ntable = page_clone_table(entry.frame << 12);
+                page_map_temp(ndir, 1);
+                    src_v->entries[i] = entry;
+                    src_v->entries[i].frame = (size_t)ntable >> 12;
+                page_map_temp_restore();
+            }
+        }
+    }
+
+    return ndir;
 }

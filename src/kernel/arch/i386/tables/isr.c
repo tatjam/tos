@@ -5,7 +5,7 @@
 void isr_key(void)
 {
 	uint8_t scancode = asm_inb(0x60);
-	ktty_putc(scancode);
+	keyb_interrupt(scancode);
 }
 
 void isr_irq0(void)

@@ -4,19 +4,19 @@
 [TOS-PALLOC] Reading mbt at: 0xC0009500
 [TOS-PALLOC] (Real: 0x9500) [Flags: 0x24F]
 [TOS-PALLOC] Memory -> [103 Mb, 103677 Kb]
-[TOS-PALLOC] Kernel End -> 0x10F008 virt(0xC010F008)
+[TOS-PALLOC] Kernel End -> 0x110008 virt(0xC0110008)
 [TOS-PALLOC] Reading entry r:(0x0)...Not Usable [654 Kb]
 [TOS-PALLOC] Reading entry r:(0x9FC00)...Not Usable [1 Kb]
 [TOS-PALLOC] Reading entry r:(0xF0000)...Not Usable [65 Kb]
-[TOS-PALLOC] Reading entry r:(0x100000)...Usable [103 Mb][ADJ: 110000]
+[TOS-PALLOC] Reading entry r:(0x100000)...Usable [103 Mb][ADJ: 111000]
 [TOS-PALLOC] Reading entry r:(0x63E0000)...Not Usable [131 Kb]
 [TOS-PALLOC] Reading entry r:(0xFFFC0000)...Not Usable [262 Kb]
 [TOS-PALLOC] 1 sectors usable
 [TOS-PALLOC] 25312 blocks (3164 bytes, 3 Kb) ready to work on
-[TOS-PALLOC] Found space for bitmap: r(0x110000)
+[TOS-PALLOC] Found space for bitmap: r(0x111000)
 
-Page directory location: 0xC0109000 -> 0xC010A000
-FRAME ADDRESS: 0x110000 >0xFF800000<
+Page directory location: 0xC010A000 -> 0xC010B000
+FRAME ADDRESS: 0x111000 >0xFF800000<
 [TOS-PALLOC] Final blocks 25311 (1 used by bitmap)
 [TOS-BOOT] Finished Palloc
 [TOS-BOOT] Basic Boot Finished

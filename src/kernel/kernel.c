@@ -66,6 +66,7 @@ void kernel_main(multiboot_info_t* mbd, unsigned int magic)
 	klog("%a[TOS-BOOT]%a Finished Palloc\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 	klog("%a[TOS-BOOT]%a Basic Boot Finished\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 
+	keyb_load(keyb_default);
 
 	asm_sti();
 

@@ -50,29 +50,6 @@ static bool frame_test(uint32_t addr)
 	return frames[id] & (1 << off);
 }
 
-int32_t test()
-{
-	//klog("kek!");
-
-	for(uint32_t i = 0; i < nframes / 8; i++)
-	{
-		// Ignore frames with all bits set
-		if(frames[i] != 0xFF) 
-		{
-			for(uint8_t off = 0; off < 8; off++)
-			{
-				uint8_t test = 1 << off;
-				if(!(frames[i] & test))
-				{
- 					return i*8+off;
-				}
-			}
-		}
-	}
-
-	return (int32_t)-1;
-}
-
 uint32_t frame_find_free()
 {
 	for(uint32_t i = 0; i < nframes / 8; i++)
@@ -185,7 +162,7 @@ void extract_sectors(multiboot_info_t* mbt, multiboot_memory_map_t* mmap, sector
 bool set_work_page()
 {
 	//klog("MAXKEKKING!");
-	if(!page_map_temp(frames_phys))
+	if(!page_map_temp(frames_phys, 1024))
 	{
 		klog("%a[TOS-PALLOC]%a ERROR: Could not map work page %a\n", VGA_BRIGHT(VGA_RED), VGA_RED, VGA_GRAY);
 		return false;
@@ -198,7 +175,6 @@ bool set_work_page()
 
 void palloc_init(multiboot_info_t* mbt)
 {
-
 	klog("%a[TOS-PALLOC]%a Reading mbt at: 0x%p\n", VGA_BRIGHT(VGA_RED), 
 	VGA_GRAY, mbt);
 
@@ -391,7 +367,7 @@ void* palloc(page_directory_t* pd, size_t count, bool user, bool writeable)
 		}
 
 		// Claim the page and assign the physical memory
-		page_map_temp(pd->entries[pd_index].frame << 12);
+		page_map_temp(pd->entries[pd_index].frame << 12, 1);
 		page_table_t* pt = (page_table_t*)(PAGE_TEMP_PAGE);
 
 		memset(&pt->pages[pt_index], 0, 4);
@@ -442,7 +418,7 @@ void pfree(void* mem, size_t count, page_directory_t* pd)
 		size_t pd_index = (size_t)memc / (size_t)0x400000;
 		size_t pt_index = ((size_t)memc % (size_t)0x400000) / 0x1000;
 
-		page_map_temp(pd->entries[pd_index].frame << 12);
+		page_map_temp((void*)(pd->entries[pd_index].frame << 12), 1);
 		page_table_t* pt = (page_table_t*)PAGE_TEMP_PAGE;
 		memset(&pt->pages[pt_index], 0, 4);
 	}
