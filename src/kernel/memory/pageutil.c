@@ -5,13 +5,14 @@
 // They are arrays of 1024 uint32_t
 // and should be aligned by boot.s
 
-extern uint32_t* boot_pagedir;
-extern uint32_t* boot_pagetab1;
+extern uint32_t boot_pagedir;
+extern uint32_t boot_pagetab1;
 
 static size_t old_addr;
 static size_t act_addr;
 static size_t old_size;
 static size_t act_size;
+
 
 
 // This page is mapped to the second topmost
@@ -24,6 +25,21 @@ void page_init()
     page_map_temp(0x0, 1024);
     old_addr = 0;
     act_addr = 0;
+
+}
+
+void page_lateinit()
+{
+    // Move to our clone
+    page_directory_t* clone = page_create_task((uint8_t*)(&boot_pagedir) - (size_t)0xC0000000);
+    page_load_dir((page_directory_t*)clone);
+    //page_load_dir((uint8_t*)(&boot_pagedir) - (size_t)0xC0000000);
+}
+
+void page_load_dir(page_directory_t* dir)
+{
+    klog("Switching to 0x%p\n", dir);
+    asm volatile("mov %0, %%cr3" :: "r"(dir));
 }
 
 
@@ -252,6 +268,12 @@ page_directory_t* page_get_default_dir()
     return (page_directory_t*)0xFFFFF000;
 }
 
+page_directory_t* page_get_kernel_dir()
+{
+    return (page_directory_t*)boot_pagedir;
+}
+
+
 #define PAGE_CLONE_BUFFER 128
 
 static void* page_clone_table_data(void* frame)
@@ -321,36 +343,77 @@ page_directory_t* page_create_task(page_directory_t* src)
 
     page_map_temp(src, 1);
     page_directory_t* src_v = (page_directory_t*)PAGE_TEMP_PAGE;
+    page_directory_t* kernel_v = (page_directory_t*)PAGE_TEMP_PAGE;
+
+    klog("\n == WORKING ON %p TO %p ==\n", src, ndir);
 
     for(size_t i = 0; i < 1024; i++)
     {
+        page_map_temp(src, 1);
         if(src_v->entries[i].present)
         {
-            page_map_temp(src, 1);
-            // Note that we don't need to map it
-            if(memcpm(&src_v->entries[i], &page_get_default_dir()->entries[i], 4) == 0)
+            klog("[%u]", i);
+            if(i == 1023)
             {
-                // Kernel (note that we change the page so src_v "changes")
-                // ndir is NOT A TYPO
-                page_directory_entry_t entry = src_v->entries[i];
-                page_map_temp(ndir, 1); 
-                    src_v->entries[i] = entry; // src_v is actually ndir
-                page_map_temp_restore();
+                // Super special case as we must adjust this to map to our new page
+                klog("ID_MAP");
 
-            }
-            else
-            {
-                // Not-Kernel, copy it, allocating a new frame and all
-                // so the father process does not see child's changes
                 page_directory_entry_t entry = src_v->entries[i];
                 page_table_t* ntable = page_clone_table(entry.frame << 12);
                 page_map_temp(ndir, 1);
-                    src_v->entries[i] = entry;
-                    src_v->entries[i].frame = (size_t)ntable >> 12;
-                page_map_temp_restore();
+                src_v->entries[i] = entry;
+                src_v->entries[i].frame = (size_t)ntable >> 12;
+                src_v->entries[i].present = true;
+
+                page_map_temp(ntable, 1);
+                page_table_t* ntable_v = (page_table_t*)PAGE_TEMP_PAGE;
+                memset(ntable_v, 0, 1024);
+                ntable_v->pages[1023].frame = (size_t)ndir >> 12;
+                ntable_v->pages[1023].present = true;
+                ntable_v->pages[1023].rw = true;
+                // Done :)
             }
+            else
+            {
+                // Obtain kernel
+                page_map_temp((uint8_t*)(&boot_pagedir) - (size_t)0xC0000000, 1);
+                page_directory_entry_t entry = kernel_v->entries[i];
+                page_map_temp(src, 1);
+
+                klog("KERNEL: %p | SRC: %p\n", entry.frame, src_v->entries[i].frame);
+
+                // Note that we don't need to map it
+                // We also ignore the 1022 page as it's the shared workpage
+                if(memcpm(&src_v->entries[i], &entry, 4) == 0 || i == 1022)
+                {
+                    klog("KERNEL");
+                    // Kernel (note that we change the page so src_v "changes")
+                    // ndir is NOT A TYPO
+                    page_directory_entry_t entry = src_v->entries[i];
+                    page_map_temp(ndir, 1); 
+                        src_v->entries[i] = entry; // src_v is actually ndir
+                    page_map_temp_restore();
+
+                }
+                else
+                {
+                    klog("USER");
+                    // Not-Kernel, copy it, allocating a new frame and all
+                    // so the father process does not see child's changes
+                    page_directory_entry_t entry = src_v->entries[i];
+                    page_table_t* ntable = page_clone_table(entry.frame << 12);
+                    page_map_temp(ndir, 1);
+                        src_v->entries[i] = entry;
+                        src_v->entries[i].frame = (size_t)ntable >> 12;
+                    page_map_temp_restore();
+                }
+            }
+
+            klog("\n");
         }
     }
+
+    klog("OUTDIR: %p\n", ndir);
 
     return ndir;
 }

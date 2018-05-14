@@ -21,6 +21,9 @@ void* liballoc_alloc(int pages)
 	//klog("Allocating %i pages...", pages);
 	void* ret = palloc(NULL, pages, false, true);
 	//klog("@ 0x%p\n", ret);
+	klog("TRY ACCESS: ");
+	((uint8_t*)(ret))[0] = 1;
+	klog("GOOD");
 	return ret;
 }
 

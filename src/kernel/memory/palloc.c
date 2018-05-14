@@ -341,6 +341,7 @@ void* palloc(page_directory_t* pd, size_t count, bool user, bool writeable)
 	if(pd == NULL)
 	{
 		pd = page_get_default_dir();
+		klog("dir: %p -> %p\n", pd, page_get_phys(pd));
 	}
 
 	// We assign ourselves

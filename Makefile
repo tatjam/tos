@@ -62,7 +62,7 @@ qdebug: build/tos.bin
 	$(QEMU) -kernel build/tos.bin -m 128 -d guest_errors
 
 debug-reset: build/tos.bin
-	$(QEMU) -kernel build/tos.bin -m 128 -d cpu_reset,int
+	$(QEMU) -kernel build/tos.bin -m 128 -d cpu_reset
 
 debug-monitor:
 	$(QEMU) -kernel build/tos.bin -m 128 -monitor stdio

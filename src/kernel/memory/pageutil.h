@@ -48,6 +48,9 @@ typedef struct page_path
 		that is already done on boot.s!
 */
 void page_init();
+
+void page_lateinit();
+
 /*
 	page_get_phys: Gets physical address of given virtual address
 */
@@ -83,7 +86,25 @@ page_directory_entry_t* page_map_temp_restore();
 */
 page_path_t page_find_free(page_directory_t* pd, size_t num, bool assign);
 
+/*
+	page_get_default_dir: Returns the loaded directory
+		This one returns a virtual address!
+*/
 page_directory_t* page_get_default_dir();
+
+/*
+	page_get_kernel_dir: Returns the kernel directory
+		Note that this one returns physical address
+*/
+page_directory_t* page_get_kernel_dir();
+
+/*
+	page_load_dir: Loads a paging directory. 
+		Make sure the page directory you give
+		has its last entry properly mapped to itself
+		so the system can modify it!
+*/
+void page_load_dir(page_directory_t* dir);
 
 /*
 	page_create_task: Creates a new page directory for a task,

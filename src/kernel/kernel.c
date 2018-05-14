@@ -64,6 +64,15 @@ void kernel_main(multiboot_info_t* mbd, unsigned int magic)
 	palloc_init(mbd);
 	
 	klog("%a[TOS-BOOT]%a Finished Palloc\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
+
+	page_lateinit();
+
+	// VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+	// VERY IMPORTANT: Substract 0x1000 when changing. No idea why VERY IMPORTANT
+	// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	page_directory_t* clone = page_create_task(page_get_phys(page_get_default_dir()) - 0x1000);
+    page_load_dir((page_directory_t*)clone);
+
 	klog("%a[TOS-BOOT]%a Basic Boot Finished\n", VGA_BRIGHT(VGA_RED), VGA_GRAY);
 
 	keyb_load(keyb_default);

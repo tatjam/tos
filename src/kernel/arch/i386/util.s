@@ -14,6 +14,7 @@
 .global asm_sti
 .global asm_int
 .global asm_tlb_notify
+.global page_load_dir
 
 /* Disables interrupts */
 asm_cli:
